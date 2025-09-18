@@ -1,0 +1,506 @@
+/* Reset and Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Open Sans', sans-serif;
+    line-height: 1.6;
+    color: #333;
+    background: linear-gradient(rgba(102, 126, 234, 0.8), rgba(118, 75, 162, 0.8)), url('Banner-AYC-Point-636.5-scaled.jpg');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    min-height: 100vh;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Header Styles */
+header {
+    text-align: center;
+    margin-bottom: 2rem;
+    color: white;
+}
+
+header h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+
+.subtitle {
+    font-size: 1.2rem;
+    opacity: 0.9;
+    font-weight: 400;
+}
+
+.subtitle a {
+    color: #fff;
+    text-decoration: none;
+    font-weight: 600;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+    transition: all 0.3s ease;
+}
+
+.subtitle a:hover {
+    color: #f0f8ff;
+    border-bottom-color: #fff;
+    text-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+}
+
+
+/* Card Styles */
+.card {
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+}
+
+.card h2 {
+    color: #2c3e50;
+    font-size: 1.8rem;
+    margin-bottom: 1.5rem;
+    font-weight: 600;
+}
+
+/* Step Styles */
+.step {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 2rem;
+    gap: 1rem;
+}
+
+.step:last-child {
+    margin-bottom: 0;
+}
+
+.step-number {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+.step-content {
+    flex: 1;
+}
+
+.step-content h3 {
+    color: #2c3e50;
+    font-size: 1.3rem;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+}
+
+.step-content p {
+    color: #666;
+    margin-bottom: 1rem;
+    line-height: 1.5;
+}
+
+/* Facebook Section Styles */
+.facebook-section {
+    display: block;
+}
+
+.facebook-text {
+    width: 100%;
+}
+
+.facebook-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.facebook-image-link {
+    display: inline-block;
+    text-decoration: none;
+    transition: transform 0.3s ease;
+}
+
+.facebook-image-link:hover {
+    transform: scale(1.05);
+}
+
+.facebook-group-img {
+    height: 48px;
+    width: auto;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    transition: transform 0.3s ease;
+    display: block;
+}
+
+/* Button Styles */
+.btn {
+    display: inline-block;
+    padding: 12px 24px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+    cursor: pointer;
+    text-align: center;
+    margin: 0 auto;
+}
+
+.step-content {
+    text-align: center;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-color: transparent;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+    border-color: transparent;
+}
+
+.btn-secondary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(240, 147, 251, 0.4);
+}
+
+.btn-outline {
+    background: transparent;
+    color: #667eea;
+    border-color: #667eea;
+}
+
+.btn-outline:hover {
+    background: #667eea;
+    color: white;
+    transform: translateY(-2px);
+}
+
+.btn-outline {
+    font-size: 1.2rem;
+}
+
+.btn-outline:before {
+    content: "✉ ";
+    font-size: 1.8rem;
+    margin-right: 0.5rem;
+}
+
+
+/* Crewing Section */
+.crewing-options {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+}
+
+.option {
+    text-align: center;
+    padding: 1.5rem;
+    border: 2px solid #f0f0f0;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.option:hover {
+    border-color: #667eea;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.option h3 {
+    color: #2c3e50;
+    font-size: 1.3rem;
+    margin-bottom: 1rem;
+    font-weight: 600;
+}
+
+.option p {
+    color: #666;
+    margin-bottom: 1.5rem;
+    line-height: 1.5;
+}
+
+/* Crew Bench Image */
+.crew-bench-image {
+    margin-top: 1rem;
+    text-align: center;
+}
+
+.crew-bench-img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    transition: transform 0.3s ease;
+}
+
+.crew-bench-img:hover {
+    transform: scale(1.02);
+}
+
+.crew-bench-location {
+    margin-top: 0.75rem;
+    font-size: 0.9rem;
+    color: #666;
+    font-style: italic;
+}
+
+.crew-bench-location a {
+    color: #667eea;
+    text-decoration: none;
+    font-weight: 600;
+    border-bottom: 1px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.crew-bench-location a:hover {
+    color: #5a6fd8;
+    border-bottom-color: #667eea;
+}
+
+.crew-list-credit {
+    margin-top: 0.75rem;
+    font-size: 0.85rem;
+    color: #888;
+    font-style: italic;
+    text-align: center;
+}
+
+/* Calendar Section */
+.calendar-section .card {
+    text-align: center;
+}
+
+.calendar-section p {
+    color: #666;
+    margin-bottom: 1.5rem;
+    font-size: 1.1rem;
+}
+
+/* Footer */
+footer {
+    margin-top: auto;
+    text-align: center;
+    color: white;
+    padding: 2rem 0;
+    opacity: 0.8;
+}
+
+footer p {
+    margin-bottom: 0.5rem;
+}
+
+footer a {
+    color: #fff;
+    text-decoration: none;
+    font-weight: 600;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+    transition: all 0.3s ease;
+}
+
+footer a:hover {
+    color: #f0f8ff;
+    border-bottom-color: #fff;
+    text-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+}
+
+/* Mobile Responsive Design */
+@media (max-width: 768px) {
+    body {
+        background-attachment: scroll;
+        background-position: center top;
+    }
+    
+    .container {
+        padding: 15px;
+    }
+    
+    header h1 {
+        font-size: 2rem;
+    }
+    
+    .subtitle {
+        font-size: 1rem;
+    }
+    
+    .card {
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .card h2 {
+        font-size: 1.5rem;
+    }
+    
+    .step {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+    }
+    
+    .step-content {
+        text-align: center;
+    }
+    
+    .step-number {
+        align-self: center;
+    }
+    
+    .step-content h3 {
+        font-size: 1.2rem;
+    }
+    
+    .facebook-actions {
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .facebook-group-img {
+        height: 40px;
+        width: auto;
+    }
+    
+    .btn {
+        width: 100%;
+        max-width: 300px;
+        display: block;
+        margin: 0 auto;
+    }
+    
+    .crewing-options {
+        gap: 1.5rem;
+    }
+    
+    .option {
+        padding: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .container {
+        padding: 10px;
+    }
+    
+    header h1 {
+        font-size: 1.8rem;
+    }
+    
+    .card {
+        padding: 1rem;
+    }
+    
+    .step-content h3 {
+        font-size: 1.1rem;
+    }
+    
+    .btn {
+        padding: 10px 20px;
+        font-size: 0.9rem;
+    }
+    
+    .btn-outline {
+        font-size: 1rem;
+    }
+    
+    .btn-outline:before {
+        font-size: 1.4rem;
+        margin-right: 0.3rem;
+    }
+    
+    
+    .facebook-group-img {
+        height: 36px;
+        width: auto;
+    }
+}
+
+/* Tablet Landscape */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .crewing-options {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+/* Desktop */
+@media (min-width: 1025px) {
+    .crewing-options {
+        grid-template-columns: 1fr 1fr;
+    }
+    
+    .step {
+        align-items: center;
+    }
+    
+    .step-content {
+        text-align: center;
+    }
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Focus styles for accessibility */
+.btn:focus {
+    outline: 3px solid #667eea;
+    outline-offset: 2px;
+}
+
+/* Print styles */
+@media print {
+    body {
+        background: white;
+        color: black;
+    }
+    
+    .card {
+        box-shadow: none;
+        border: 1px solid #ccc;
+    }
+    
+    .btn {
+        border: 1px solid #333;
+        background: white;
+        color: black;
+    }
+}

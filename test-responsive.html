@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Responsive Test - AYC New Members</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+        }
+        .test-title {
+            color: #333;
+            margin-bottom: 15px;
+        }
+        .device-info {
+            background: #e8f4fd;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            font-family: monospace;
+        }
+        .iframe-container {
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        iframe {
+            width: 100%;
+            border: none;
+            display: block;
+        }
+        .size-label {
+            background: #333;
+            color: white;
+            padding: 5px 10px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>AYC New Members Site - Responsive Test</h1>
+        <p>This page tests the responsive design of the AYC new members site at different screen sizes.</p>
+        
+        <div class="test-section">
+            <h2 class="test-title">Mobile View (375px)</h2>
+            <div class="device-info">Width: 375px | Height: 667px (iPhone SE)</div>
+            <div class="iframe-container">
+                <div class="size-label">Mobile (375px)</div>
+                <iframe src="index.html" width="375" height="667"></iframe>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h2 class="test-title">Tablet View (768px)</h2>
+            <div class="device-info">Width: 768px | Height: 1024px (iPad)</div>
+            <div class="iframe-container">
+                <div class="size-label">Tablet (768px)</div>
+                <iframe src="index.html" width="768" height="1024"></iframe>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h2 class="test-title">Desktop View (1200px)</h2>
+            <div class="device-info">Width: 1200px | Height: 800px (Desktop)</div>
+            <div class="iframe-container">
+                <div class="size-label">Desktop (1200px)</div>
+                <iframe src="index.html" width="1200" height="800"></iframe>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h2 class="test-title">Live Preview</h2>
+            <p>Click the link below to view the actual site:</p>
+            <a href="index.html" target="_blank" style="display: inline-block; background: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px;">Open AYC New Members Site</a>
+        </div>
+    </div>
+</body>
+</html>
