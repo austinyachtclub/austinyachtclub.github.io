@@ -304,6 +304,110 @@ header h1 {
     text-align: center;
 }
 
+.fleet-list-img, .lookup-img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    margin-top: 0.5rem;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.map-container {
+    margin-top: 1rem;
+    text-align: center;
+}
+
+.map-link {
+    display: inline-block;
+    text-decoration: none;
+    transition: transform 0.3s ease;
+}
+
+.map-link:hover {
+    transform: scale(1.02);
+}
+
+.map-img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    border: 2px solid #4285F4;
+}
+
+.map-placeholder {
+    background: url('fred.png');
+    background-size: cover;
+    background-position: center;
+    border: 2px solid #4285F4;
+    border-radius: 8px;
+    padding: 2rem;
+    text-align: center;
+    color: white;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    min-height: 200px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+}
+
+.map-placeholder:hover {
+    transform: scale(1.02);
+    box-shadow: 0 8px 25px rgba(66, 133, 244, 0.4);
+}
+
+.map-icon {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.map-placeholder p {
+    margin: 0;
+    font-size: 1rem;
+}
+
+.repair-shop-images {
+    margin: 1rem 0;
+    text-align: center;
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.repair-shop-img, .drive-img {
+    max-height: 200px;
+    width: auto;
+    height: auto;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    border: 2px solid #E88B5D;
+    flex: 0 0 auto;
+    min-width: 200px;
+    max-width: 300px;
+}
+
+.points-image {
+    margin: 1rem 0;
+    text-align: center;
+}
+
+.points-img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    border: 2px solid #4285F4;
+}
+
 /* Calendar Section */
 .calendar-section .card {
     text-align: center;
@@ -449,6 +553,19 @@ footer a:hover {
     
     .facebook-group-img {
         height: 72px;
+        width: auto;
+    }
+    
+    .repair-shop-images {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .repair-shop-img, .drive-img {
+        min-width: auto;
+        max-width: 100%;
+        max-height: 150px;
+        height: auto;
         width: auto;
     }
 }
