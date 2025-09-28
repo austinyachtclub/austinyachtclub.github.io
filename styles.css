@@ -395,6 +395,70 @@ header h1 {
     max-width: 300px;
 }
 
+.repair-shop-note {
+    margin-top: 1rem;
+    font-style: italic;
+    color: #666;
+    text-align: center;
+    font-size: 1.1rem;
+}
+
+.business-info {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 8px;
+    border: 2px solid #4285F4;
+    text-align: center;
+}
+
+.business-info h3 {
+    color: #2c3e50;
+    margin-bottom: 1rem;
+    font-size: 1.3rem;
+}
+
+.business-info p {
+    margin-bottom: 0.8rem;
+    line-height: 1.6;
+}
+
+.business-info strong {
+    color: #4285F4;
+    font-weight: 600;
+}
+
+.business-info a {
+    color: #4285F4;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.business-info a:hover {
+    text-decoration: underline;
+}
+
+.business-image {
+    margin: 1rem 0;
+    text-align: center;
+}
+
+.bartlett-store-img {
+    max-width: 100%;
+    max-height: 300px;
+    width: auto;
+    height: auto;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    border: 2px solid #4285F4;
+}
+
+@media (max-width: 768px) {
+    .bartlett-store-img {
+        max-height: 200px;
+    }
+}
+
 .points-image {
     margin: 1rem 0;
     text-align: center;
