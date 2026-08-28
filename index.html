@@ -366,16 +366,24 @@
 
     <script>
     (function () {
+        // The contents API serves the freshest data (raw.githubusercontent
+        // caches ~5 min server-side); raw and the local file are fallbacks
+        // for API rate limits or outages.
+        var API_URL = "https://api.github.com/repos/austinyachtclub/austinyachtclub.github.io/contents/weather.json?ref=weather-data";
         var RAW_URL = "https://raw.githubusercontent.com/austinyachtclub/austinyachtclub.github.io/weather-data/weather.json";
+
+        function getJson(url, opts) {
+            return fetch(url, opts).then(function (r) {
+                if (!r.ok) throw new Error(url + " " + r.status);
+                return r.json();
+            });
+        }
 
         function fetchWeather(bust) {
             var q = bust ? "?_=" + Date.now() : "";
-            return fetch(RAW_URL + q, { cache: "no-cache" })
-                .then(function (r) { if (!r.ok) throw new Error("raw " + r.status); return r.json(); })
-                .catch(function () {
-                    return fetch("weather.json" + q, { cache: "no-cache" })
-                        .then(function (r) { if (!r.ok) throw new Error("local " + r.status); return r.json(); });
-                });
+            return getJson(API_URL, { cache: "no-store", headers: { "Accept": "application/vnd.github.raw+json" } })
+                .catch(function () { return getJson(RAW_URL + q, { cache: "no-cache" }); })
+                .catch(function () { return getJson("weather.json" + q, { cache: "no-cache" }); });
         }
 
         function chip(html) { return '<span class="sail-chip">' + html + '</span>'; }
@@ -665,7 +673,7 @@
         function maybeAutoRefresh() {
             if (!lastData || document.hidden) return;
             var now = Date.now() / 1000;
-            if (now - lastData.updated < 120 || now - lastFetchAttempt < 60) return;
+            if (now - lastData.updated < 120 || now - lastFetchAttempt < 90) return;
             lastFetchAttempt = now;
             fetchWeather(true).then(function (w) {
                 if (w.updated !== lastData.updated) {
