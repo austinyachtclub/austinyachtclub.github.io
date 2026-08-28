@@ -5,6 +5,10 @@
     box-sizing: border-box;
 }
 
+html {
+    color-scheme: light only;
+}
+
 body {
     font-family: 'Open Sans', sans-serif;
     line-height: 1.6;
@@ -1408,7 +1412,9 @@ footer a:hover {
     }
 
     /* The short mobile camera can't fit both dials and the caption pill;
-       the compass already shows the view direction. */
+       the compass already shows the view direction. The dials anchor to the
+       top corners because the camera image is top-aligned, so they always
+       sit over the photo even when it runs shorter than the frame. */
     .cam-note {
         display: none;
     }
@@ -1416,6 +1422,18 @@ footer a:hover {
     .cam-compass {
         width: 64px;
         height: 64px;
+        top: 8px;
+        bottom: auto;
+        left: 8px;
+    }
+
+    .cam-speed {
+        left: auto;
+        right: 8px;
+    }
+
+    .weather-embed-cam::before {
+        padding-top: 58%;
     }
 }
 

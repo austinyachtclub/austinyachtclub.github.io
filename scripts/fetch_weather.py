@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 """Fetch live conditions from the club's Grafana server into weather.json.
 
-Run by .github/workflows/weather.yml every 15 minutes. The queries mirror
-the Grafana dashboard panels (including the +80 deg wind vane calibration,
-the zone=="shield" air temp sensor, and the LCRA Mansfield Dam buoy for
-water temperature) so the numbers match what the embedded panels display.
+Run in a loop by .github/workflows/weather.yml. Everything comes from just
+two Flux queries (Cloudflare slow-walks datacenter IPs, so request count is
+the latency driver); windowing and 5-minute aggregation happen here in
+Python. Calibrations mirror the Grafana dashboard panels: +80 deg wind vane
+offset, the zone=="shield" temp/humidity sensors, and the LCRA Mansfield Dam
+buoy for water temperature.
 """
 import json
 import math
@@ -17,16 +19,36 @@ GRAFANA = "https://grafana.ageddon.com/api/ds/query"
 DATASOURCE = {"uid": "cf0y3k7lgwa9sd"}
 USER_AGENT = "Mozilla/5.0 (compatible; AYC-weather-page; +https://github.com/austinyachtclub/austinyachtclub.github.io)"
 
+MAIN_Q = (
+    'from(bucket:"default") |> range(start: -3h) '
+    '|> filter(fn: (r) => r._measurement == "env.wind.speed" '
+    'or r._measurement == "env.wind.speed.max" '
+    'or r._measurement == "env.wind.speed.min" '
+    'or r._measurement == "env.wind.direction" '
+    'or ((r._measurement == "env.temperature" or r._measurement == "env.relative_humidity") and r.zone == "shield") '
+    'or r._measurement == "env.count.boat" '
+    'or r._measurement == "env.coverage.cloud" '
+    'or r._measurement == "env.raingauge.event_acc") '
+    '|> keep(columns: ["_time", "_value", "_measurement"])')
 
-def flux(query, frm="now-1h"):
-    """Run one Flux query, return the list of values (may be empty)."""
+WATER_Q = (
+    'from(bucket:"default") |> range(start: -12h) '
+    '|> filter(fn: (r) => r["_measurement"] == "lcra_wtemp") '
+    '|> filter(fn: (r) => r["_field"] == "value") '
+    '|> filter(fn: (r) => r["location"] == "Mansfield Dam Floating Buoy Gage") '
+    '|> keep(columns: ["_time", "_value", "_measurement"])')
+
+
+def flux_multi(query, frm):
+    """Run one Flux query; return {measurement: [(epoch_s, value), ...]} with
+    all result tables for a measurement merged and time-sorted."""
     body = json.dumps({
         "queries": [{
             "refId": "A",
             "datasource": DATASOURCE,
             "query": query,
             "intervalMs": 60000,
-            "maxDataPoints": 2000,
+            "maxDataPoints": 20000,
         }],
         "from": frm,
         "to": "now",
@@ -35,122 +57,52 @@ def flux(query, frm="now-1h"):
         "Content-Type": "application/json",
         "User-Agent": USER_AGENT,
     })
-    with urllib.request.urlopen(req, timeout=30) as r:
+    with urllib.request.urlopen(req, timeout=60) as r:
         d = json.load(r)
-    frames = d["results"]["A"].get("frames") or []
-    if not frames:
-        return []
-    vals = frames[0]["data"]["values"]
-    numbers = vals[1] if len(vals) > 1 else []
-    return [v for v in numbers if v is not None]
+    out = {}
+    for frame in d["results"]["A"].get("frames") or []:
+        name = (frame.get("schema") or {}).get("name") or ""
+        vals = frame.get("data", {}).get("values") or []
+        if len(vals) < 2:
+            continue
+        pts = [(int(t / 1000), v) for t, v in zip(vals[0], vals[1])
+               if t is not None and v is not None]
+        out.setdefault(name, []).extend(pts)
+    for name in out:
+        out[name].sort()
+    return out
 
 
-def series(name, window, extra=""):
-    q = ('from(bucket:"default") |> range(start: -%s) '
-         '|> filter(fn: (r) => r._measurement == "%s"%s) '
-         '|> keep(columns: ["_time", "_value"])' % (window, name, extra))
-    return flux(q, frm="now-" + window)
+def window_values(pts, seconds, now):
+    return [v for t, v in pts if t >= now - seconds]
 
 
-def timed_series(name, window, every, extra=""):
-    """Return [(epoch_seconds, value), ...] aggregated to `every` windows."""
-    q = ('from(bucket:"default") |> range(start: -%s) '
-         '|> filter(fn: (r) => r._measurement == "%s"%s) '
-         '|> group() '
-         '|> aggregateWindow(every: %s, fn: mean, createEmpty: false) '
-         '|> keep(columns: ["_time", "_value"]) '
-         '|> sort(columns: ["_time"])' % (window, name, extra, every))
-    return timed_flux(q, "now-" + window)
-
-
-def timed_flux(q, frm):
-    body = json.dumps({
-        "queries": [{
-            "refId": "A",
-            "datasource": DATASOURCE,
-            "query": q,
-            "intervalMs": 60000,
-            "maxDataPoints": 2000,
-        }],
-        "from": frm,
-        "to": "now",
-    }).encode()
-    req = urllib.request.Request(GRAFANA, data=body, headers={
-        "Content-Type": "application/json",
-        "User-Agent": USER_AGENT,
-    })
-    with urllib.request.urlopen(req, timeout=30) as r:
-        d = json.load(r)
-    frames = d["results"]["A"].get("frames") or []
-    if not frames:
-        return []
-    vals = frames[0]["data"]["values"]
-    if len(vals) < 2:
-        return []
-    return [(int(t / 1000), v) for t, v in zip(vals[0], vals[1]) if t is not None and v is not None]
-
-
-def build_wind_series(avg_pts, lull_pts, gust_pts):
-    """Merge avg/lull/gust into [t, avg, lull, gust] rows keyed by window."""
-    avg = dict(avg_pts)
-    lull = dict(lull_pts)
-    gust = dict(gust_pts)
-    rows = []
-    for t in sorted(avg):
-        a = avg[t]
-        rows.append([t, round(a, 1), round(lull.get(t, a), 1), round(gust.get(t, a), 1)])
-    return rows
-
-
-WATER_LATEST_Q = ('from(bucket:"default") |> range(start: -12h) '
-                  '|> filter(fn: (r) => r["_measurement"] == "lcra_wtemp") '
-                  '|> filter(fn: (r) => r["_field"] == "value") '
-                  '|> filter(fn: (r) => r["location"] == "Mansfield Dam Floating Buoy Gage") '
-                  '|> keep(columns: ["_time", "_value"])')
-
-WATER_SERIES_Q = ('from(bucket:"default") |> range(start: -12h) '
-                  '|> filter(fn: (r) => r["_measurement"] == "lcra_wtemp") '
-                  '|> filter(fn: (r) => r["_field"] == "value") '
-                  '|> filter(fn: (r) => r["location"] == "Mansfield Dam Floating Buoy Gage") '
-                  '|> group() '
-                  '|> aggregateWindow(every: 30m, fn: mean, createEmpty: false) '
-                  '|> keep(columns: ["_time", "_value"]) '
-                  '|> sort(columns: ["_time"])')
+def agg(pts, minutes):
+    """Mean-aggregate raw points into N-minute windows (window-end labeled,
+    like Flux aggregateWindow), merging duplicate sensors."""
+    buckets = {}
+    for t, v in pts:
+        b = t - t % (minutes * 60)
+        buckets.setdefault(b, []).append(v)
+    return [[b + minutes * 60, sum(vs) / len(vs)] for b, vs in sorted(buckets.items())]
 
 
 def main(out_path):
-    # The Grafana queries are slow from CI runners, so run them all in
-    # parallel — wall time becomes the slowest single query.
-    with ThreadPoolExecutor(max_workers=8) as ex:
-        jobs = {
-            "wind": ex.submit(series, "env.wind.speed", "30m"),
-            "gusts": ex.submit(series, "env.wind.speed.max", "30m"),
-            "lulls": ex.submit(series, "env.wind.speed.min", "30m"),
-            "dirs_raw": ex.submit(series, "env.wind.direction", "1h"),
-            "air_c": ex.submit(series, "env.temperature", "30m", ' and r.zone == "shield"'),
-            "water": ex.submit(flux, WATER_LATEST_Q, "now-12h"),
-            "boats": ex.submit(series, "env.count.boat", "3h"),
-            "cloud": ex.submit(series, "env.coverage.cloud", "3h"),
-            "rain_acc": ex.submit(series, "env.raingauge.event_acc", "1h"),
-            "dir_series_raw": ex.submit(timed_series, "env.wind.direction", "3h", "5m"),
-            "ws_avg": ex.submit(timed_series, "env.wind.speed", "3h", "5m"),
-            "ws_lull": ex.submit(timed_series, "env.wind.speed.min", "3h", "5m"),
-            "ws_gust": ex.submit(timed_series, "env.wind.speed.max", "3h", "5m"),
-            "temp_series_raw": ex.submit(timed_series, "env.temperature", "3h", "5m", ' and r.zone == "shield"'),
-            "hum_series_raw": ex.submit(timed_series, "env.relative_humidity", "3h", "5m", ' and r.zone == "shield"'),
-            "water_series_raw": ex.submit(timed_flux, WATER_SERIES_Q, "now-12h"),
-        }
-        r = {k: j.result() for k, j in jobs.items()}
+    with ThreadPoolExecutor(max_workers=2) as ex:
+        main_job = ex.submit(flux_multi, MAIN_Q, "now-3h")
+        water_job = ex.submit(flux_multi, WATER_Q, "now-12h")
+        m = main_job.result()
+        water_pts = water_job.result().get("lcra_wtemp", [])
 
-    wind = r["wind"]
-    gusts = r["gusts"]
-    lulls = r["lulls"]
-    dirs_raw = r["dirs_raw"]
-    air_c = r["air_c"]
-    water = r["water"]
-    boats = r["boats"]
-    cloud = r["cloud"]
-    rain_acc = r["rain_acc"]
+    now = time.time()
+    wind = window_values(m.get("env.wind.speed", []), 1800, now)
+    gusts = window_values(m.get("env.wind.speed.max", []), 1800, now)
+    lulls = window_values(m.get("env.wind.speed.min", []), 1800, now)
+    dirs_raw = window_values(m.get("env.wind.direction", []), 3600, now)
+    air_c = window_values(m.get("env.temperature", []), 1800, now)
+    boats = m.get("env.count.boat", [])
+    cloud = m.get("env.coverage.cloud", [])
+    rain_acc = window_values(m.get("env.raingauge.event_acc", []), 3600, now)
 
     if not wind:
         print("no wind data; leaving previous weather.json in place")
@@ -169,8 +121,7 @@ def main(out_path):
     if len(dirs) >= 10:
         x = sum(math.cos(math.radians(d)) for d in dirs) / len(dirs)
         y = sum(math.sin(math.radians(d)) for d in dirs) / len(dirs)
-        r_concentration = math.hypot(x, y)
-        shifty = r_concentration < 0.85
+        shifty = math.hypot(x, y) < 0.85
 
     raining = len(rain_acc) >= 2 and (rain_acc[-1] - rain_acc[0]) > 200  # accumulation is in um
 
@@ -195,8 +146,14 @@ def main(out_path):
         """Club preference: above 72F round up, below 72F round down."""
         return int(math.ceil(v)) if v > 72 else int(math.floor(v))
 
+    ws_avg = agg(m.get("env.wind.speed", []), 5)
+    ws_lull = {t: v for t, v in agg(m.get("env.wind.speed.min", []), 5)}
+    ws_gust = {t: v for t, v in agg(m.get("env.wind.speed.max", []), 5)}
+    wind_series = [[t, round(a, 1), round(ws_lull.get(t, a), 1), round(ws_gust.get(t, a), 1)]
+                   for t, a in ws_avg]
+
     data = {
-        "updated": int(time.time()),
+        "updated": int(now),
         "verdict": verdict,
         "color": color,
         "tagline": tagline,
@@ -207,20 +164,17 @@ def main(out_path):
         "dir_card": cardinals[round(direction / 45.0) % 8] if direction is not None else None,
         "shifty": shifty,
         "air_f": temp_round(air_c[-1] * 9.0 / 5.0 + 32.0) if air_c else None,
-        "water_f": temp_round(water[-1]) if water else None,
-        "boats": round(boats[-1]) if boats else None,
-        "cloud_pct": round(cloud[-1] * 100.0) if cloud else None,
+        "water_f": temp_round(water_pts[-1][1]) if water_pts else None,
+        "boats": round(boats[-1][1]) if boats else None,
+        "cloud_pct": round(cloud[-1][1] * 100.0) if cloud else None,
         "raining": raining,
-        # 3h direction history at 5-minute resolution, calibrated like the panels,
-        # for the custom N/E/S/W chart on the page.
-        "dir_series": [[t, round((v + 80.0) % 360.0)] for t, v in r["dir_series_raw"]],
-        # 3h wind history [t, avg, lull, gust] for the custom speed chart.
-        "wind_series": build_wind_series(r["ws_avg"], r["ws_lull"], r["ws_gust"]),
-        # 3h air temp (F) and humidity (%) for the custom instrument charts.
-        "temp_series": [[t, round(v * 9.0 / 5.0 + 32.0, 1)] for t, v in r["temp_series_raw"]],
-        "hum_series": [[t, round(v, 1)] for t, v in r["hum_series_raw"]],
-        # 12h water temp (F) from the LCRA Mansfield Dam buoy for the custom chart.
-        "water_series": [[t, round(v, 1)] for t, v in r["water_series_raw"]],
+        # 3h histories at 5-minute resolution for the custom charts.
+        "dir_series": [[t, round((v + 80.0) % 360.0)] for t, v in agg(m.get("env.wind.direction", []), 5)],
+        "wind_series": wind_series,
+        "temp_series": [[t, round(v * 9.0 / 5.0 + 32.0, 1)] for t, v in agg(m.get("env.temperature", []), 5)],
+        "hum_series": [[t, round(v, 1)] for t, v in agg(m.get("env.relative_humidity", []), 5)],
+        # 12h water temp (F) from the LCRA Mansfield Dam buoy.
+        "water_series": [[t, round(v, 1)] for t, v in agg(water_pts, 30)],
     }
     with open(out_path, "w") as f:
         json.dump(data, f, indent=1)
