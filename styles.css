@@ -1294,28 +1294,15 @@ footer a:hover {
         padding: 0.9rem 0.9rem 0.7rem;
     }
 
-    .sail-scale {
-        order: 1;
-    }
-
+    /* Chips cluster at the top (wrapping), scale below with its pill */
     .sail-top {
-        order: 2;
-        margin: 0.9rem 0 0;
-        flex-wrap: nowrap;
-        justify-content: flex-start;
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-        padding-bottom: 4px;
+        margin-bottom: 0.6rem;
+        gap: 0.35rem;
     }
 
-    .sail-chip,
-    .sail-refresh {
-        flex: 0 0 auto;
-    }
-
-    .sail-updated {
-        flex: 0 0 auto;
-        white-space: nowrap;
+    .sail-chip {
+        font-size: 0.78rem;
+        padding: 0.2rem 0.6rem;
     }
 
     /* Camera full width on top, wind ribbons side by side beneath it */
