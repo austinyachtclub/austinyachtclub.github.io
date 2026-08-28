@@ -11,6 +11,7 @@ import math
 import sys
 import time
 import urllib.request
+from concurrent.futures import ThreadPoolExecutor
 
 GRAFANA = "https://grafana.ageddon.com/api/ds/query"
 DATASOURCE = {"uid": "cf0y3k7lgwa9sd"}
@@ -89,11 +90,11 @@ def timed_flux(q, frm):
     return [(int(t / 1000), v) for t, v in zip(vals[0], vals[1]) if t is not None and v is not None]
 
 
-def build_wind_series():
+def build_wind_series(avg_pts, lull_pts, gust_pts):
     """Merge avg/lull/gust into [t, avg, lull, gust] rows keyed by window."""
-    avg = dict(timed_series("env.wind.speed", "3h", "5m"))
-    lull = dict(timed_series("env.wind.speed.min", "3h", "5m"))
-    gust = dict(timed_series("env.wind.speed.max", "3h", "5m"))
+    avg = dict(avg_pts)
+    lull = dict(lull_pts)
+    gust = dict(gust_pts)
     rows = []
     for t in sorted(avg):
         a = avg[t]
@@ -101,21 +102,55 @@ def build_wind_series():
     return rows
 
 
+WATER_LATEST_Q = ('from(bucket:"default") |> range(start: -12h) '
+                  '|> filter(fn: (r) => r["_measurement"] == "lcra_wtemp") '
+                  '|> filter(fn: (r) => r["_field"] == "value") '
+                  '|> filter(fn: (r) => r["location"] == "Mansfield Dam Floating Buoy Gage") '
+                  '|> keep(columns: ["_time", "_value"])')
+
+WATER_SERIES_Q = ('from(bucket:"default") |> range(start: -12h) '
+                  '|> filter(fn: (r) => r["_measurement"] == "lcra_wtemp") '
+                  '|> filter(fn: (r) => r["_field"] == "value") '
+                  '|> filter(fn: (r) => r["location"] == "Mansfield Dam Floating Buoy Gage") '
+                  '|> group() '
+                  '|> aggregateWindow(every: 30m, fn: mean, createEmpty: false) '
+                  '|> keep(columns: ["_time", "_value"]) '
+                  '|> sort(columns: ["_time"])')
+
+
 def main(out_path):
-    wind = series("env.wind.speed", "30m")
-    gusts = series("env.wind.speed.max", "30m")
-    lulls = series("env.wind.speed.min", "30m")
-    dirs_raw = series("env.wind.direction", "1h")
-    air_c = series("env.temperature", "30m", ' and r.zone == "shield"')
-    water = flux(
-        'from(bucket:"default") |> range(start: -12h) '
-        '|> filter(fn: (r) => r["_measurement"] == "lcra_wtemp") '
-        '|> filter(fn: (r) => r["_field"] == "value") '
-        '|> filter(fn: (r) => r["location"] == "Mansfield Dam Floating Buoy Gage") '
-        '|> keep(columns: ["_time", "_value"])', frm="now-12h")
-    boats = series("env.count.boat", "3h")
-    cloud = series("env.coverage.cloud", "3h")
-    rain_acc = series("env.raingauge.event_acc", "1h")
+    # The Grafana queries are slow from CI runners, so run them all in
+    # parallel — wall time becomes the slowest single query.
+    with ThreadPoolExecutor(max_workers=8) as ex:
+        jobs = {
+            "wind": ex.submit(series, "env.wind.speed", "30m"),
+            "gusts": ex.submit(series, "env.wind.speed.max", "30m"),
+            "lulls": ex.submit(series, "env.wind.speed.min", "30m"),
+            "dirs_raw": ex.submit(series, "env.wind.direction", "1h"),
+            "air_c": ex.submit(series, "env.temperature", "30m", ' and r.zone == "shield"'),
+            "water": ex.submit(flux, WATER_LATEST_Q, "now-12h"),
+            "boats": ex.submit(series, "env.count.boat", "3h"),
+            "cloud": ex.submit(series, "env.coverage.cloud", "3h"),
+            "rain_acc": ex.submit(series, "env.raingauge.event_acc", "1h"),
+            "dir_series_raw": ex.submit(timed_series, "env.wind.direction", "3h", "5m"),
+            "ws_avg": ex.submit(timed_series, "env.wind.speed", "3h", "5m"),
+            "ws_lull": ex.submit(timed_series, "env.wind.speed.min", "3h", "5m"),
+            "ws_gust": ex.submit(timed_series, "env.wind.speed.max", "3h", "5m"),
+            "temp_series_raw": ex.submit(timed_series, "env.temperature", "3h", "5m", ' and r.zone == "shield"'),
+            "hum_series_raw": ex.submit(timed_series, "env.relative_humidity", "3h", "5m", ' and r.zone == "shield"'),
+            "water_series_raw": ex.submit(timed_flux, WATER_SERIES_Q, "now-12h"),
+        }
+        r = {k: j.result() for k, j in jobs.items()}
+
+    wind = r["wind"]
+    gusts = r["gusts"]
+    lulls = r["lulls"]
+    dirs_raw = r["dirs_raw"]
+    air_c = r["air_c"]
+    water = r["water"]
+    boats = r["boats"]
+    cloud = r["cloud"]
+    rain_acc = r["rain_acc"]
 
     if not wind:
         print("no wind data; leaving previous weather.json in place")
@@ -178,24 +213,14 @@ def main(out_path):
         "raining": raining,
         # 3h direction history at 5-minute resolution, calibrated like the panels,
         # for the custom N/E/S/W chart on the page.
-        "dir_series": [[t, round((v + 80.0) % 360.0)] for t, v in timed_series("env.wind.direction", "3h", "5m")],
+        "dir_series": [[t, round((v + 80.0) % 360.0)] for t, v in r["dir_series_raw"]],
         # 3h wind history [t, avg, lull, gust] for the custom speed chart.
-        "wind_series": build_wind_series(),
+        "wind_series": build_wind_series(r["ws_avg"], r["ws_lull"], r["ws_gust"]),
         # 3h air temp (F) and humidity (%) for the custom instrument charts.
-        "temp_series": [[t, round(v * 9.0 / 5.0 + 32.0, 1)]
-                        for t, v in timed_series("env.temperature", "3h", "5m", ' and r.zone == "shield"')],
-        "hum_series": [[t, round(v, 1)]
-                       for t, v in timed_series("env.relative_humidity", "3h", "5m", ' and r.zone == "shield"')],
+        "temp_series": [[t, round(v * 9.0 / 5.0 + 32.0, 1)] for t, v in r["temp_series_raw"]],
+        "hum_series": [[t, round(v, 1)] for t, v in r["hum_series_raw"]],
         # 12h water temp (F) from the LCRA Mansfield Dam buoy for the custom chart.
-        "water_series": [[t, round(v, 1)] for t, v in timed_flux(
-            'from(bucket:"default") |> range(start: -12h) '
-            '|> filter(fn: (r) => r["_measurement"] == "lcra_wtemp") '
-            '|> filter(fn: (r) => r["_field"] == "value") '
-            '|> filter(fn: (r) => r["location"] == "Mansfield Dam Floating Buoy Gage") '
-            '|> group() '
-            '|> aggregateWindow(every: 30m, fn: mean, createEmpty: false) '
-            '|> keep(columns: ["_time", "_value"]) '
-            '|> sort(columns: ["_time"])', "now-12h")],
+        "water_series": [[t, round(v, 1)] for t, v in r["water_series_raw"]],
     }
     with open(out_path, "w") as f:
         json.dump(data, f, indent=1)

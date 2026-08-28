@@ -28,14 +28,17 @@ jobs:
           tmp=$(mktemp -d)
           cd "$tmp"
           git init -q -b weather-data
-          for i in $(seq 1 270); do
-            if python3 "$GITHUB_WORKSPACE/scripts/fetch_weather.py" weather.json; then
+          for i in $(seq 1 300); do
+            if python3 "$GITHUB_WORKSPACE/scripts/fetch_weather.py" weather.json > /dev/null; then
               git add weather.json
               git -c user.name="weather-bot" -c user.email="actions@github.com" commit -q --amend -m "weather update" 2>/dev/null \
                 || git -c user.name="weather-bot" -c user.email="actions@github.com" commit -q -m "weather update"
               git push -q --force "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" weather-data || true
+              echo "$(date -u +%H:%M:%S) published"
+            else
+              echo "$(date -u +%H:%M:%S) fetch failed, retrying next cycle"
             fi
-            sleep 60
+            sleep 45
           done
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
