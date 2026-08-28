@@ -459,17 +459,245 @@ header h1 {
     }
 }
 
-.points-image {
-    margin: 1rem 0;
-    text-align: center;
+/* Probationary Points Section */
+.points-summary {
+    margin: 1.5rem 0;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, rgba(66, 133, 244, 0.08), rgba(232, 139, 93, 0.08));
+    border: 2px solid #4285F4;
+    border-radius: 12px;
 }
 
-.points-img {
-    max-width: 100%;
+.points-summary-intro {
+    color: #2c3e50;
+    font-size: 1.05rem;
+    margin-bottom: 1.25rem;
+}
+
+.points-equation {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.point-badge {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: white;
+    border: 1px solid #dbe6f7;
+    border-radius: 12px;
+    padding: 0.75rem 0.5rem;
+    width: 108px;
+    min-height: 118px;
+    box-shadow: 0 2px 8px rgba(44, 62, 80, 0.08);
+    transition: all 0.3s ease;
+}
+
+.point-badge:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(66, 133, 244, 0.25);
+}
+
+.point-plus {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #2c3e50;
+    opacity: 0.45;
+    flex-shrink: 0;
+}
+
+.point-count {
+    font-size: 1.9rem;
+    font-weight: 700;
+    color: #4285F4;
+    line-height: 1.2;
+}
+
+.point-code {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: white;
+    background: #E88B5D;
+    border-radius: 999px;
+    padding: 0.1rem 0.6rem;
+    margin: 0.3rem 0;
+    letter-spacing: 0.05em;
+}
+
+.point-label {
+    font-size: 0.8rem;
+    color: #666;
+    font-weight: 600;
+    text-align: center;
+    line-height: 1.25;
+}
+
+.point-badge-other {
+    border-style: dashed;
+    border-color: #c4d3ea;
+    background: rgba(255, 255, 255, 0.6);
+    box-shadow: none;
+}
+
+.point-badge-other .point-count {
+    color: #9aa9be;
+}
+
+.point-badge-other .point-code {
+    background: #9aa9be;
+}
+
+.point-badge-other .point-label {
+    color: #9aa9be;
+}
+
+.point-badge-total {
+    background: #4285F4;
+    border-color: #4285F4;
+    box-shadow: 0 6px 18px rgba(66, 133, 244, 0.35);
+    width: 128px;
+}
+
+.point-badge-total .point-count {
+    color: white;
+    font-size: 2.4rem;
+}
+
+.point-badge-total .point-label {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.point-badge-total:hover {
+    box-shadow: 0 10px 24px rgba(66, 133, 244, 0.45);
+}
+
+.handbook-excerpt {
+    margin: 1.5rem auto;
+    max-width: 700px;
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.handbook-excerpt-caption {
+    background: #2c3e50;
+    color: white;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-align: left;
+    padding: 0.6rem 1rem;
+}
+
+.handbook-excerpt .points-img {
+    display: block;
+    width: 100%;
     height: auto;
+    padding: 0.75rem;
+}
+
+.recommend-heading {
+    color: #2c3e50;
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin: 2rem 0 1rem;
+}
+
+.recommend-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    text-align: left;
+}
+
+.recommend-card {
+    background: white;
+    border: 2px solid #f0f0f0;
     border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    border: 2px solid #4285F4;
+    padding: 1.25rem;
+    transition: all 0.3s ease;
+}
+
+.recommend-card:hover {
+    border-color: #4285F4;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.recommend-card-wide {
+    grid-column: 1 / -1;
+}
+
+.recommend-icon {
+    font-size: 1.8rem;
+    line-height: 1;
+    margin-bottom: 0.5rem;
+}
+
+.recommend-card h4 {
+    color: #2c3e50;
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin-bottom: 0.4rem;
+}
+
+.recommend-card p {
+    color: #666;
+    margin-bottom: 0;
+    line-height: 1.5;
+    font-size: 0.95rem;
+}
+
+.recommend-card a {
+    color: #4285F4;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.recommend-card a:hover {
+    color: #E88B5D;
+    text-decoration: underline;
+}
+
+.gm-callout {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+    padding: 1rem 1.5rem;
+    background: rgba(232, 139, 93, 0.12);
+    border-left: 4px solid #E88B5D;
+    border-radius: 8px;
+    text-align: left;
+}
+
+.gm-callout-icon {
+    font-size: 1.6rem;
+    flex-shrink: 0;
+}
+
+.gm-callout p {
+    margin-bottom: 0;
+    color: #2c3e50;
+    font-size: 1rem;
+}
+
+.gm-callout a {
+    color: #4285F4;
+    text-decoration: none;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.gm-callout a:hover {
+    color: #E88B5D;
+    text-decoration: underline;
 }
 
 /* Calendar Section */
@@ -577,9 +805,43 @@ footer a:hover {
     .crewing-options {
         gap: 1.5rem;
     }
-    
+
     .option {
         padding: 1rem;
+    }
+
+    .recommend-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .points-summary {
+        padding: 1rem;
+    }
+
+    .point-plus {
+        display: none;
+    }
+
+    .points-equation {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+    }
+
+    .point-badge {
+        width: auto;
+        min-height: 108px;
+    }
+
+    .point-badge-total {
+        grid-column: 1 / -1;
+        width: auto;
+    }
+
+    .gm-callout {
+        flex-direction: column;
+        text-align: center;
+        gap: 0.5rem;
     }
 }
 
