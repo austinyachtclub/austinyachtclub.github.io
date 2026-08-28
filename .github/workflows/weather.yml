@@ -1,0 +1,32 @@
+name: Update weather data
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch conditions from Grafana
+        run: python3 scripts/fetch_weather.py weather.json
+
+      - name: Publish to weather-data branch
+        # Single-commit force-push keeps main's history clean; the page reads
+        # the file via raw.githubusercontent.com from this branch.
+        run: |
+          tmp=$(mktemp -d)
+          cp weather.json "$tmp"
+          cd "$tmp"
+          git init -q -b weather-data
+          git add weather.json
+          git -c user.name="weather-bot" -c user.email="actions@github.com" commit -q -m "weather update"
+          git push --force "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" weather-data
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

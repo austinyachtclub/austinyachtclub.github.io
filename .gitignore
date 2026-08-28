@@ -53,3 +53,4 @@ node_modules/
 # Temporary folders
 tmp/
 temp/
+weather.json
