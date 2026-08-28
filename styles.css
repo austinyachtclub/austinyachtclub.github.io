@@ -1063,6 +1063,9 @@ header h1 {
 
 .weather-instruments .weather-embed {
     margin-bottom: 0;
+    /* the custom charts inside are absolutely positioned, so the tile needs
+       its own height to avoid collapsing */
+    min-height: 250px;
 }
 
 .weather-instruments .weather-embed iframe {
@@ -1270,12 +1273,55 @@ footer a:hover {
         width: auto;
     }
 
+    /* Mobile glance mode: verdict scale first, then camera, then detail.
+       Most phone visitors just want the weather report. */
+    .webcam-section .card > p {
+        display: none;
+    }
+
+    .webcam-section .card h2 {
+        font-size: 1.35rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .sailability {
+        display: flex;
+        flex-direction: column;
+        padding: 0.9rem 0.9rem 0.7rem;
+    }
+
+    .sail-scale {
+        order: 1;
+    }
+
+    .sail-top {
+        order: 2;
+        margin: 0.9rem 0 0;
+        flex-wrap: nowrap;
+        justify-content: flex-start;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 4px;
+    }
+
+    .sail-chip,
+    .sail-refresh {
+        flex: 0 0 auto;
+    }
+
+    .sail-updated {
+        flex: 0 0 auto;
+        white-space: nowrap;
+    }
+
+    /* Camera full width on top, wind ribbons side by side beneath it */
     .weather-layout {
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr 1fr;
     }
 
     .weather-layout .weather-embed-cam {
         order: -1;
+        grid-column: 1 / -1;
     }
 
     .weather-side {
@@ -1284,15 +1330,17 @@ footer a:hover {
     }
 
     .weather-side .weather-embed {
-        height: 200px;
+        height: 230px;
     }
 
+    /* Temp + humidity share a row; the taller water tile gets its own */
     .weather-instruments {
         grid-template-columns: 1fr 1fr;
     }
 
-    .sailability {
-        padding: 1rem 1rem 0.8rem;
+    .weather-instruments .water-tile {
+        grid-column: 1 / -1;
+        order: 3;
     }
 
     .water-chart-area {
@@ -1328,6 +1376,46 @@ footer a:hover {
         flex-direction: column;
         text-align: center;
         gap: 0.5rem;
+    }
+}
+
+.sail-pill-verdict {
+    display: none;
+}
+
+@media (max-width: 560px) {
+    header {
+        margin-bottom: 1rem;
+    }
+
+    header h1 {
+        font-size: 1.7rem;
+        margin-bottom: 0.2rem;
+    }
+
+    .subtitle {
+        font-size: 1rem;
+    }
+
+    /* Zone names can't fit at this width: colors stay, the verdict word
+       rides in the "now" pill instead. */
+    .sail-zone {
+        font-size: 0;
+    }
+
+    .sail-pill-verdict {
+        display: inline;
+    }
+
+    /* The short mobile camera can't fit both dials and the caption pill;
+       the compass already shows the view direction. */
+    .cam-note {
+        display: none;
+    }
+
+    .cam-compass {
+        width: 64px;
+        height: 64px;
     }
 }
 

@@ -3,7 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>New to AYC? - Austin Yacht Club</title>
+    <title>Weather · Austin Yacht Club — Live Lake Travis Webcam &amp; Wind | New2AYC.com</title>
+    <meta name="description" content="Live Austin Yacht Club weather: Lake Travis webcam, wind speed and direction, gusts, air and water temperature — plus everything a new AYC member needs to get started.">
+    <link rel="canonical" href="https://new2ayc.com/">
+    <meta name="theme-color" content="#4285F4">
+
+    <!-- Social sharing (Open Graph) -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://new2ayc.com/">
+    <meta property="og:site_name" content="New2AYC.com">
+    <meta property="og:title" content="Weather · Austin Yacht Club">
+    <meta property="og:description" content="Is it a good day to come to the club? Live Lake Travis webcam, wind, gusts, direction, and water temperature at Austin Yacht Club.">
+    <meta property="og:image" content="https://new2ayc.com/og-image.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Live Lake Travis webcam and sailing conditions at Austin Yacht Club — new2ayc.com">
+
+    <!-- Twitter / X card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Weather · Austin Yacht Club">
+    <meta name="twitter:description" content="Live Lake Travis webcam, wind, gusts, and lake conditions at Austin Yacht Club.">
+    <meta name="twitter:image" content="https://new2ayc.com/og-image.jpg">
+
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "New2AYC",
+        "url": "https://new2ayc.com/",
+        "description": "Live weather and webcam for Austin Yacht Club on Lake Travis, and a getting-started guide for new members.",
+        "about": {
+            "@type": "SportsClub",
+            "name": "Austin Yacht Club",
+            "url": "https://austinyachtclub.net/",
+            "sport": "Sailing"
+        }
+    }
+    </script>
+
+    <link rel="preconnect" href="https://grafana.ageddon.com">
+    <link rel="preconnect" href="https://raw.githubusercontent.com">
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
@@ -349,7 +388,8 @@
             var marker = el.querySelector(".sail-marker");
             marker.style.left = p + "%";
             var pill = el.querySelector(".sail-pill");
-            pill.textContent = "now · " + w.wind_kn + " kn";
+            pill.innerHTML = "now · " + w.wind_kn + " kn" +
+                '<span class="sail-pill-verdict"> · ' + w.verdict + "</span>";
             pill.style.transform = p < 7 ? "translateX(0)" : (p > 93 ? "translateX(-100%)" : "translateX(-50%)");
 
             var lo = pct(Math.min(w.lull_kn != null ? w.lull_kn : w.wind_kn, w.wind_kn));
@@ -614,7 +654,34 @@
         }
 
         var lastData = null;
-        setInterval(function () { if (lastData) updateStamp(lastData); }, 60000);
+        var lastFetchAttempt = 0;
+
+        // Quietly pull fresh data when it's more than 5 minutes old — checked
+        // once a minute and whenever the user comes back to the tab. Attempts
+        // are throttled to one per 2 minutes so the CDN isn't hammered while
+        // waiting on the next workflow publish.
+        function maybeAutoRefresh() {
+            if (!lastData || document.hidden) return;
+            var now = Date.now() / 1000;
+            if (now - lastData.updated < 300 || now - lastFetchAttempt < 120) return;
+            lastFetchAttempt = now;
+            fetchWeather(true).then(function (w) {
+                if (w.updated !== lastData.updated) {
+                    lastData = w;
+                    renderAll(w);
+                } else {
+                    updateStamp(w);
+                }
+            }).catch(function () { /* try again next cycle */ });
+        }
+
+        setInterval(function () {
+            if (lastData) updateStamp(lastData);
+            maybeAutoRefresh();
+        }, 60000);
+        document.addEventListener("visibilitychange", function () {
+            if (!document.hidden) maybeAutoRefresh();
+        });
 
         document.getElementById("sailRefresh").addEventListener("click", function () {
             this.disabled = true;
