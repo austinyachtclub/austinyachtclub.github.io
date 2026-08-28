@@ -91,7 +91,7 @@
                             </div>
                         </div>
                         <div class="weather-embed weather-embed-cam">
-                            <iframe src="https://grafana.ageddon.com/d-solo/adw52sz/ayc?orgId=1&amp;from=now-3h&amp;to=now&amp;refresh=5m&amp;panelId=panel-19&amp;theme=light&amp;__feature.dashboardScene=true" title="Live Lake Travis webcam at Austin Yacht Club" loading="lazy" frameborder="0"></iframe>
+                            <iframe src="https://grafana.ageddon.com/d-solo/adw52sz/ayc?orgId=1&amp;from=now-3h&amp;to=now&amp;refresh=1m&amp;panelId=panel-19&amp;theme=light&amp;__feature.dashboardScene=true" title="Live Lake Travis webcam at Austin Yacht Club" loading="lazy" frameborder="0"></iframe>
                             <span class="cam-note">🧭 You are looking East · 090°</span>
                             <div id="camCompass" class="cam-compass" hidden></div>
                             <div id="camSpeed" class="cam-compass cam-speed" hidden></div>
@@ -649,21 +649,22 @@
         // Live "updated N min ago" stamp; past 6 minutes a refresh button appears.
         function updateStamp(w) {
             var mins = Math.max(0, Math.round((Date.now() / 1000 - w.updated) / 60));
-            document.querySelector(".sail-updated").textContent = "updated " + mins + " min ago";
-            document.getElementById("sailRefresh").hidden = mins < 6;
+            document.querySelector(".sail-updated").textContent =
+                mins < 1 ? "updated just now" : "updated " + mins + " min ago";
+            document.getElementById("sailRefresh").hidden = mins < 3;
         }
 
         var lastData = null;
         var lastFetchAttempt = 0;
 
-        // Quietly pull fresh data when it's more than 5 minutes old — checked
+        // Quietly pull fresh data when it's more than 2 minutes old — checked
         // once a minute and whenever the user comes back to the tab. Attempts
-        // are throttled to one per 2 minutes so the CDN isn't hammered while
-        // waiting on the next workflow publish.
+        // are throttled to one per minute; the workflow publishes roughly
+        // every minute, so on-screen data stays within a couple minutes live.
         function maybeAutoRefresh() {
             if (!lastData || document.hidden) return;
             var now = Date.now() / 1000;
-            if (now - lastData.updated < 300 || now - lastFetchAttempt < 120) return;
+            if (now - lastData.updated < 120 || now - lastFetchAttempt < 60) return;
             lastFetchAttempt = now;
             fetchWeather(true).then(function (w) {
                 if (w.updated !== lastData.updated) {

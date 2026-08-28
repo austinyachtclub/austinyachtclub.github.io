@@ -2,33 +2,40 @@ name: Update weather data
 
 on:
   schedule:
-    # every 5 minutes — GitHub delays/skips scheduled runs under load, so a
-    # tighter schedule keeps the real cadence closer to 10-15 minutes
-    - cron: "*/5 * * * *"
+    # Relaunches the update loop; each run refreshes weather.json every
+    # minute for ~4.5 hours, so scheduling only has to succeed every 4h.
+    - cron: "7 */4 * * *"
   workflow_dispatch:
 
 permissions:
   contents: write
 
+concurrency:
+  group: weather-loop
+  cancel-in-progress: true
+
 jobs:
   update:
     runs-on: ubuntu-latest
+    timeout-minutes: 285
     steps:
       - uses: actions/checkout@v4
 
-      - name: Fetch conditions from Grafana
-        run: python3 scripts/fetch_weather.py weather.json
-
-      - name: Publish to weather-data branch
-        # Single-commit force-push keeps main's history clean; the page reads
-        # the file via raw.githubusercontent.com from this branch.
+      - name: Fetch conditions every minute for ~4.5 hours
+        # Single amended commit force-pushed to weather-data keeps history
+        # clean; a failed fetch skips the push and tries again next minute.
         run: |
           tmp=$(mktemp -d)
-          cp weather.json "$tmp"
           cd "$tmp"
           git init -q -b weather-data
-          git add weather.json
-          git -c user.name="weather-bot" -c user.email="actions@github.com" commit -q -m "weather update"
-          git push --force "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" weather-data
+          for i in $(seq 1 270); do
+            if python3 "$GITHUB_WORKSPACE/scripts/fetch_weather.py" weather.json; then
+              git add weather.json
+              git -c user.name="weather-bot" -c user.email="actions@github.com" commit -q --amend -m "weather update" 2>/dev/null \
+                || git -c user.name="weather-bot" -c user.email="actions@github.com" commit -q -m "weather update"
+              git push -q --force "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" weather-data || true
+            fi
+            sleep 60
+          done
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
