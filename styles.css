@@ -867,10 +867,50 @@ header h1 {
     margin-left: 0.4rem;
 }
 
-/* "30 min" label pinned under the bracket furthest from the needle */
-.sail-range-pill {
-    background: #7d8896;
-    border-color: rgba(255, 255, 255, 0.6);
+/* Legend on the pill row, pinned to the right end of the scale */
+.sail-legend {
+    position: absolute;
+    top: 54px;
+    right: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.66rem;
+    color: #8a95a3;
+    white-space: nowrap;
+}
+
+.lg-glyph {
+    position: relative;
+    display: inline-block;
+    width: 22px;
+    height: 9px;
+    border-radius: 3px;
+    background: linear-gradient(90deg, #4285F4, #34a853);
+    flex-shrink: 0;
+}
+
+.lg-brackets::before,
+.lg-brackets::after {
+    content: "";
+    position: absolute;
+    top: -2px;
+    bottom: -2px;
+    width: 5px;
+    border: 2px solid white;
+    filter: drop-shadow(0 0 1px rgba(44, 62, 80, 0.7));
+}
+
+.lg-brackets::before {
+    left: 1px;
+    border-right: none;
+    border-radius: 3px 0 0 3px;
+}
+
+.lg-brackets::after {
+    right: 1px;
+    border-left: none;
+    border-radius: 0 3px 3px 0;
 }
 
 .sail-refresh {

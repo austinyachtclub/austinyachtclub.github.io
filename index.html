@@ -83,7 +83,7 @@
                             <span class="sail-tick" style="left:60%">15 kn</span>
                             <span class="sail-tick" style="left:80%">20 kn</span>
                             <span class="sail-tick" style="left:100%">25+</span>
-                            <span class="sail-pill sail-range-pill" id="rangePill" hidden>30 min</span>
+                            <span class="sail-legend"><span class="lg-glyph lg-brackets" aria-hidden="true"></span> lull to gust, last 30 min</span>
                         </div>
                     </div>
                     <div class="weather-layout">
@@ -410,18 +410,6 @@
             band.style.width = (hi - lo) + "%";
             band.title = "lull " + w.lull_kn + " kn to gusts " + w.gust_kn + " kn";
             band.hidden = false;
-
-            // "30 min" label under whichever bracket is furthest from the needle,
-            // hidden when the range is too tight for both pills to fit.
-            var rangePill = document.getElementById("rangePill");
-            var rpos = (hi - p >= p - lo) ? hi : lo;
-            if (Math.abs(rpos - p) < 9) {
-                rangePill.hidden = true;
-            } else {
-                rangePill.style.left = rpos + "%";
-                rangePill.style.transform = rpos < 3 ? "translateX(0)" : (rpos > 97 ? "translateX(-100%)" : "translateX(-50%)");
-                rangePill.hidden = false;
-            }
 
             updateStamp(w);
             var chips = [];
