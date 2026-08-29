@@ -403,7 +403,7 @@
 
             var lo = pct(Math.min(w.lull_kn != null ? w.lull_kn : w.wind_kn, w.wind_kn));
             var hi = pct(Math.max(w.gust_kn != null ? w.gust_kn : w.wind_kn, w.wind_kn));
-            if (hi - lo < 1.5) { lo = Math.max(0, hi - 1.5); }
+            if (hi - lo < 4) { lo = Math.max(0, hi - 4); } // keep the brackets visually apart
             var band = el.querySelector(".sail-gustband");
             band.style.left = lo + "%";
             band.style.width = (hi - lo) + "%";

@@ -788,15 +788,37 @@ header h1 {
     transform: translateX(-50%);
 }
 
+/* Lull-to-gust range shown as a pair of brackets [ ] over the bar —
+   explicit strokes stay visible even when browsers force-darken the page */
 .sail-gustband {
     position: absolute;
     top: -4px;
     height: 36px;
-    background: rgba(255, 255, 255, 0.35);
-    border: 1.5px solid rgba(44, 62, 80, 0.55);
-    border-radius: 6px;
-    box-sizing: border-box;
     z-index: 1;
+    pointer-events: none;
+}
+
+.sail-gustband::before,
+.sail-gustband::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 8px;
+    border: 3px solid white;
+    filter: drop-shadow(0 0 1.5px rgba(44, 62, 80, 0.8));
+}
+
+.sail-gustband::before {
+    left: 0;
+    border-right: none;
+    border-radius: 5px 0 0 5px;
+}
+
+.sail-gustband::after {
+    right: 0;
+    border-left: none;
+    border-radius: 0 5px 5px 0;
 }
 
 .sail-marker {
@@ -811,6 +833,7 @@ header h1 {
     top: 52px;
     transform: translateX(-50%);
     background: #2c3e50;
+    border: 1px solid rgba(255, 255, 255, 0.75);
     color: white;
     font-size: 0.7rem;
     font-weight: 700;
@@ -824,11 +847,11 @@ header h1 {
     top: 0;
     left: 0;
     transform: translateX(-50%);
-    width: 2.5px;
+    width: 3px;
     height: 52px;
-    background: #2c3e50;
+    background: white;
     border-radius: 2px;
-    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.55);
+    box-shadow: 0 0 0 1.5px rgba(44, 62, 80, 0.55);
 }
 
 .sail-chips {
