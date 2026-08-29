@@ -43,6 +43,7 @@
     </script>
 
     <link rel="preconnect" href="https://grafana.ageddon.com">
+    <link rel="preconnect" href="https://ayc.ageddon.com">
     <link rel="preconnect" href="https://raw.githubusercontent.com">
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
@@ -93,7 +94,7 @@
                             </div>
                         </div>
                         <div class="weather-embed weather-embed-cam">
-                            <iframe src="https://grafana.ageddon.com/d-solo/adw52sz/ayc?orgId=1&amp;from=now-3h&amp;to=now&amp;refresh=1m&amp;panelId=panel-19&amp;theme=light&amp;__feature.dashboardScene=true" title="Live Lake Travis webcam at Austin Yacht Club" loading="lazy" frameborder="0"></iframe>
+                            <img id="camImg" src="https://ayc.ageddon.com/api/bottom/latest.jpg" alt="Live Lake Travis webcam at Austin Yacht Club">
                             <span class="cam-note">🧭 You are looking East · 090°</span>
                             <div id="camCompass" class="cam-compass" hidden></div>
                             <div id="camSpeed" class="cam-compass cam-speed" hidden></div>
@@ -686,9 +687,25 @@
             }).catch(function () { /* try again next cycle */ });
         }
 
+        // The camera snapshot: reload every minute, re-render the flanking
+        // ribbons when its size settles (the image defines the row height),
+        // and hide the frame if the camera host is unreachable.
+        var camImg = document.getElementById("camImg");
+        camImg.addEventListener("load", function () {
+            if (lastData) { renderSpeedChart(lastData); renderDirChart(lastData); }
+        });
+        camImg.addEventListener("error", function () {
+            camImg.closest(".weather-embed-cam").style.display = "none";
+        });
+        function refreshCam() {
+            if (document.hidden) return;
+            camImg.src = "https://ayc.ageddon.com/api/bottom/latest.jpg?t=" + Date.now();
+        }
+
         setInterval(function () {
             if (lastData) updateStamp(lastData);
             maybeAutoRefresh();
+            refreshCam();
         }, 60000);
         document.addEventListener("visibilitychange", function () {
             if (!document.hidden) maybeAutoRefresh();
