@@ -1471,6 +1471,16 @@ footer a:hover {
         display: inline;
     }
 
+    /* The verdict makes the pill long, so it gets its own row under the
+       ticks instead of riding the tick row */
+    .sail-scale {
+        height: 76px;
+    }
+
+    .sail-pill {
+        top: 50px;
+    }
+
     /* Compact caption pill between the dials on small screens */
     .cam-note {
         font-size: 0.68rem;
@@ -1539,6 +1549,32 @@ footer a:hover {
         max-height: 150px;
         height: auto;
         width: auto;
+    }
+}
+
+/* Very narrow phones: side-by-side tiles get too cramped for the charts,
+   so everything stacks full width and the webcam overlays shrink */
+@media (max-width: 400px) {
+    .weather-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .weather-instruments {
+        grid-template-columns: 1fr;
+    }
+
+    .weather-instruments .water-tile {
+        grid-column: auto;
+    }
+
+    .cam-compass {
+        width: 56px;
+        height: 56px;
+    }
+
+    .cam-note {
+        font-size: 0.6rem;
+        padding: 0.2rem 0.5rem;
     }
 }
 

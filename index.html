@@ -406,7 +406,6 @@
             var pill = el.querySelector(".sail-pill");
             pill.innerHTML = "now · " + w.wind_kn + " kn" +
                 '<span class="sail-pill-verdict"> · ' + w.verdict + "</span>";
-            pill.style.transform = p < 3.5 ? "translateX(0)" : (p > 96.5 ? "translateX(-100%)" : "translateX(-50%)");
 
             var lo = pct(Math.min(w.lull_kn != null ? w.lull_kn : w.wind_kn, w.wind_kn));
             var hi = pct(Math.max(w.gust_kn != null ? w.gust_kn : w.wind_kn, w.wind_kn));
@@ -433,6 +432,14 @@
             if (w.cloud_pct != null) chips.push(chip("☁️ <b>" + w.cloud_pct + "%</b> cloud cover"));
             el.querySelector(".sail-chips").innerHTML = chips.join("");
             el.hidden = false;
+
+            // Center the pill on the marker, but pin it inside the scale when
+            // it would overflow either end (measured after unhiding).
+            var scaleW = el.querySelector(".sail-scale").clientWidth;
+            var px = p / 100 * scaleW, pw = pill.offsetWidth;
+            if (px - pw / 2 < 0) pill.style.transform = "translateX(" + Math.round(-px) + "px)";
+            else if (px + pw / 2 > scaleW) pill.style.transform = "translateX(" + Math.round(scaleW - px - pw) + "px)";
+            else pill.style.transform = "translateX(-50%)";
         }
 
         // Heads-up compass over the webcam: the camera faces East (090), so the
