@@ -74,7 +74,10 @@
                                 <span class="sail-zone sz-orange" style="width:20%" title="15–20 kn">SPORTY</span>
                                 <span class="sail-zone sz-red" style="width:20%" title="20+ kn">RISKY</span>
                             </div>
-                            <div class="sail-gustband" hidden></div>
+                            <div class="sail-gustband" hidden>
+                                <span class="band-label band-lull"></span>
+                                <span class="band-label band-gust"></span>
+                            </div>
                             <div class="sail-marker">
                                 <span class="sail-pill"></span>
                                 <span class="sail-arrow"></span>
@@ -84,7 +87,6 @@
                             <span class="sail-tick" style="left:60%">15 kn</span>
                             <span class="sail-tick" style="left:80%">20 kn</span>
                             <span class="sail-tick" style="left:100%">25+</span>
-                            <span class="sail-legend"><span class="lg-glyph lg-brackets" aria-hidden="true"></span> lull to gust, last 30 min</span>
                         </div>
                     </div>
                     <div class="weather-layout">
@@ -95,7 +97,7 @@
                         </div>
                         <div class="weather-embed weather-embed-cam">
                             <img id="camImg" src="https://ayc.ageddon.com/api/bottom/latest.jpg" alt="Live Lake Travis webcam at Austin Yacht Club">
-                            <span class="cam-note">🧭 You are looking East · 090°</span>
+                            <span class="cam-note">Looking East · 090°</span>
                             <div id="camCompass" class="cam-compass" hidden></div>
                             <div id="camSpeed" class="cam-compass cam-speed" hidden></div>
                         </div>
@@ -111,13 +113,16 @@
                         </div>
                         <div class="weather-embed water-tile">
                             <div class="water-chart-area" id="waterPanel">
+                                <!-- Covers the iframe's own "Water Temp (F)" header, which
+                                     Grafana truncates on narrow tiles. -->
+                                <div class="dir-chart-title iframe-title">Water Temp <span>12h · LCRA buoy</span></div>
                                 <iframe src="https://grafana.ageddon.com/d-solo/adw52sz/ayc?orgId=1&amp;from=now-3h&amp;to=now&amp;refresh=5m&amp;panelId=panel-21&amp;theme=light&amp;__feature.dashboardScene=true" title="Live water temperature at Austin Yacht Club" loading="lazy" frameborder="0"></iframe>
                             </div>
                             <div class="water-temp-guide-side" aria-label="Typical water temperature by season">
-                                <span class="wtg" data-season="winter">❄️ <b>Winter</b> 50–60°</span>
-                                <span class="wtg" data-season="spring">🌱 <b>Spring</b> 55–78°</span>
-                                <span class="wtg" data-season="summer">☀️ <b>Summer</b> 78–86°</span>
-                                <span class="wtg" data-season="fall">🍂 <b>Fall</b> 62–84°</span>
+                                <span class="wtg" data-season="winter"><span class="wtg-ico">❄️ </span><b>Winter</b> 50–60°</span>
+                                <span class="wtg" data-season="spring"><span class="wtg-ico">🌱 </span><b>Spring</b> 55–78°</span>
+                                <span class="wtg" data-season="summer"><span class="wtg-ico">☀️ </span><b>Summer</b> 78–86°</span>
+                                <span class="wtg" data-season="fall"><span class="wtg-ico">🍂 </span><b>Fall</b> 62–84°</span>
                             </div>
                         </div>
                         <div class="weather-embed" id="humPanel">
@@ -410,6 +415,11 @@
             band.style.left = lo + "%";
             band.style.width = (hi - lo) + "%";
             band.title = "lull " + w.lull_kn + " kn to gusts " + w.gust_kn + " kn";
+            var lullKn = Math.min(w.lull_kn != null ? w.lull_kn : w.wind_kn, w.wind_kn);
+            var gustKn = Math.max(w.gust_kn != null ? w.gust_kn : w.wind_kn, w.wind_kn);
+            band.querySelector(".band-lull").textContent = "LULL " + lullKn;
+            band.querySelector(".band-gust").textContent = "GUST " + gustKn;
+            band.classList.toggle("band-tight", hi - lo < 14);
             band.hidden = false;
 
             updateStamp(w);
@@ -432,10 +442,20 @@
             if (w.dir_deg == null) return;
             var el = document.getElementById("camCompass");
             var screenAngle = w.dir_deg - CAMERA_BEARING;
+            // Only the cardinal points keep tick marks; every other 30-degree
+            // position shows its bearing number in the tick's place instead.
             var ticks = "";
-            for (var d = 0; d < 360; d += 30) {
+            for (var d = 0; d < 360; d += 90) {
                 ticks += '<line x1="0" y1="-46" x2="0" y2="-52" transform="rotate(' + (d - CAMERA_BEARING) + ')" ' +
                          'stroke="rgba(255,255,255,0.7)" stroke-width="1.5"/>';
+            }
+            var degLabels = "";
+            for (var b = 30; b < 360; b += 30) {
+                if (b % 90 === 0) continue;
+                var ba = (b - CAMERA_BEARING) * Math.PI / 180;
+                degLabels += '<text x="' + (48 * Math.sin(ba)).toFixed(1) + '" y="' + (-48 * Math.cos(ba) + 3.1).toFixed(1) + '" ' +
+                             'text-anchor="middle" font-size="8.5" font-weight="600" ' +
+                             'fill="rgba(255,255,255,0.8)">' + b + "</text>";
             }
             var cardinals = [["N", 0], ["E", 90], ["S", 180], ["W", 270]].map(function (c) {
                 var a = (c[1] - CAMERA_BEARING) * Math.PI / 180;
@@ -447,8 +467,7 @@
             el.innerHTML =
                 '<svg viewBox="-60 -60 120 120" role="img" aria-label="Wind ' + w.dir_deg + ' degrees">' +
                 '<circle r="56" fill="rgba(15,25,38,0.55)"/>' +
-                '<circle r="54" fill="none" stroke="rgba(255,255,255,0.75)" stroke-width="1.5"/>' +
-                ticks + cardinals +
+                ticks + cardinals + degLabels +
                 '<g transform="rotate(' + screenAngle + ')">' +
                 '<polygon points="0,-30 6,10 0,4 -6,10" fill="#ff5a4a" stroke="rgba(255,255,255,0.9)" stroke-width="1"/>' +
                 "</g>" +
@@ -465,17 +484,39 @@
             el.hidden = false;
         }
 
+        // Tachometer speed dial: the sailing-scale zones wrap the rim (0 kn at
+        // bottom-left through 25+ at bottom-right), a white needle points at
+        // the current speed, and a thin inner arc spans lull to gust.
+        var SPEED_MAX = 25;
+        var SPEED_ZONES = [[0, 5, "#4285F4"], [5, 15, "#34a853"], [15, 20, "#f29900"], [20, 25, "#dc3545"]];
         function renderSpeed(w) {
             if (w.wind_kn == null) return;
             var el = document.getElementById("camSpeed");
+            function pt(v, r) {
+                var a = (-135 + 270 * Math.min(v, SPEED_MAX) / SPEED_MAX) * Math.PI / 180;
+                return (r * Math.sin(a)).toFixed(1) + " " + (-r * Math.cos(a)).toFixed(1);
+            }
+            function arc(v0, v1, r, sw, color, cap) {
+                var large = (Math.min(v1, SPEED_MAX) - Math.min(v0, SPEED_MAX)) / SPEED_MAX * 270 > 180 ? 1 : 0;
+                return '<path d="M ' + pt(v0, r) + " A " + r + " " + r + " 0 " + large + " 1 " + pt(v1, r) + '" ' +
+                       'fill="none" stroke="' + color + '" stroke-width="' + sw + '" stroke-linecap="' + (cap || "butt") + '"/>';
+            }
+            var zones = SPEED_ZONES.map(function (z) { return arc(z[0], z[1], 48, 7, z[2]); }).join("");
+            var lull = Math.min(w.lull_kn != null ? w.lull_kn : w.wind_kn, w.wind_kn);
+            var gust = Math.max(w.gust_kn != null ? w.gust_kn : w.wind_kn, w.wind_kn);
+            var range = gust > lull ? arc(lull, gust, 41, 2.5, "rgba(255,255,255,0.85)", "round") : "";
+            var needleDeg = -135 + 270 * Math.min(w.wind_kn, SPEED_MAX) / SPEED_MAX;
             el.innerHTML =
-                '<svg viewBox="-60 -60 120 120" role="img" aria-label="Wind speed ' + w.wind_kn + ' knots">' +
+                '<svg viewBox="-60 -60 120 120" role="img" aria-label="Wind speed ' + w.wind_kn + ' knots, lull ' + lull + ', gusts ' + gust + '">' +
                 '<circle r="56" fill="rgba(15,25,38,0.55)"/>' +
-                '<circle r="54" fill="none" stroke="rgba(255,255,255,0.75)" stroke-width="1.5"/>' +
-                '<text x="0" y="8" text-anchor="middle" font-size="38" font-weight="700" fill="white">' + w.wind_kn +
-                '<tspan font-size="16" font-weight="600" fill="rgba(255,255,255,0.85)" dy="-14"> kn</tspan></text>' +
+                zones + range +
+                '<g transform="rotate(' + needleDeg + ')">' +
+                '<polygon points="0,-44 3.5,-24 -3.5,-24" fill="white" stroke="rgba(15,25,38,0.6)" stroke-width="0.8"/>' +
+                "</g>" +
+                '<text x="0" y="8" text-anchor="middle" font-size="30" font-weight="700" fill="white">' + w.wind_kn +
+                '<tspan font-size="14" font-weight="600" fill="rgba(255,255,255,0.85)" dy="-12"> kn</tspan></text>' +
                 (w.gust_kn != null
-                    ? '<text x="0" y="34" text-anchor="middle" font-size="13" font-weight="600" fill="rgba(255,255,255,0.9)">gusts ' + w.gust_kn + "</text>"
+                    ? '<text x="0" y="50" text-anchor="middle" font-size="11" font-weight="600" fill="rgba(255,255,255,0.9)">gusts ' + w.gust_kn + "</text>"
                     : "") +
                 "</svg>";
             el.hidden = false;
@@ -540,7 +581,7 @@
 
             el.innerHTML =
                 '<div class="dir-chart">' +
-                '<div class="dir-chart-title">Wind Direction <span>last 3h</span></div>' +
+                '<div class="dir-chart-title">Wind Direction</div>' +
                 '<svg width="' + W + '" height="' + (H - 34) + '" viewBox="0 34 ' + W + " " + (H - 34) + '">' +
                 grid + lines + dot + big + "</svg></div>";
         }
@@ -613,7 +654,7 @@
         function tempRound(v) { return v > 72 ? Math.ceil(v) : Math.floor(v); }
 
         function renderStatChart(elId, label, unit, series, color, windowLabel, tickStep, rounder) {
-            windowLabel = windowLabel || "last 3h";
+            windowLabel = windowLabel || "";
             tickStep = tickStep || 1;
             rounder = rounder || Math.round;
             var el = document.getElementById(elId);
@@ -659,7 +700,7 @@
 
             el.innerHTML =
                 '<div class="dir-chart">' +
-                '<div class="dir-chart-title">' + label + ' <span>' + windowLabel + "</span></div>" +
+                '<div class="dir-chart-title">' + label + (windowLabel ? ' <span>' + windowLabel + "</span>" : "") + "</div>" +
                 '<svg width="' + W + '" height="' + (H - 34) + '" viewBox="0 34 ' + W + " " + (H - 34) + '">' +
                 grid + area + line + dot + big + "</svg></div>";
         }
@@ -730,8 +771,8 @@
             renderSpeed(w);
             renderDirChart(w);
             renderSpeedChart(w);
-            renderStatChart("tempPanel", "Air Temp", "°F", w.temp_series, "#dc3545", "last 3h", 1, tempRound);
-            renderStatChart("humPanel", "Humidity", "%", w.hum_series, "#34a853", "last 3h", 1, Math.floor);
+            renderStatChart("tempPanel", "Air Temp", "°F", w.temp_series, "#dc3545", "", 1, tempRound);
+            renderStatChart("humPanel", "Humidity", "%", w.hum_series, "#34a853", "", 1, Math.floor);
             renderStatChart("waterPanel", "Water Temp", "°F", w.water_series, "#4285F4", "12h · LCRA buoy", 3, tempRound);
             var m = new Date().getMonth();
             var season = m === 11 || m <= 1 ? "winter" : (m <= 4 ? "spring" : (m <= 7 ? "summer" : "fall"));

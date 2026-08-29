@@ -750,7 +750,7 @@ header h1 {
 .sail-scale {
     position: relative;
     height: 74px;
-    margin: 8px 0 0;
+    margin: 26px 0 0; /* headroom for the LULL/GUST labels above the bar */
     text-align: left;
 }
 
@@ -867,49 +867,34 @@ header h1 {
     margin-left: 0.4rem;
 }
 
-/* Legend on the pill row, pinned to the right end of the scale */
-.sail-legend {
+/* "LULL n" / "GUST n" ride on the bracket ends, labeling the band */
+.band-label {
     position: absolute;
-    top: 54px;
-    right: 0;
-    display: flex;
-    align-items: center;
-    gap: 0.35rem;
-    font-size: 0.66rem;
-    color: #8a95a3;
+    top: -17px;
+    font-size: 0.62rem;
+    font-weight: 700;
+    color: #4a5a6a;
+    letter-spacing: 0.03em;
     white-space: nowrap;
 }
 
-.lg-glyph {
-    position: relative;
-    display: inline-block;
-    width: 26px;
-    height: 12px;
-    border-radius: 3px;
-    background: #2c3e50;
-    flex-shrink: 0;
+.band-label.band-lull {
+    left: 0;
+    transform: translateX(-50%);
 }
 
-.lg-brackets::before,
-.lg-brackets::after {
-    content: "";
-    position: absolute;
-    top: 2px;
-    bottom: 2px;
-    width: 5px;
-    border: 2px solid white;
+.band-label.band-gust {
+    right: 0;
+    transform: translateX(50%);
 }
 
-.lg-brackets::before {
-    left: 5px;
-    border-right: none;
-    border-radius: 2px 0 0 2px;
+/* Narrow band: anchor the labels outside the brackets so they can't collide */
+.sail-gustband.band-tight .band-lull {
+    transform: translateX(calc(-100% - 5px));
 }
 
-.lg-brackets::after {
-    right: 5px;
-    border-left: none;
-    border-radius: 0 2px 2px 0;
+.sail-gustband.band-tight .band-gust {
+    transform: translateX(calc(100% + 5px));
 }
 
 .sail-refresh {
@@ -1139,6 +1124,23 @@ header h1 {
 .water-tile {
     display: flex;
     flex-direction: column;
+    container-type: inline-size;
+}
+
+/* Squeezed tile: drop the chip icons and the title's source note so
+   "Water Temp" and the season ranges stay whole. */
+@container (max-width: 270px) {
+    .wtg-ico {
+        display: none;
+    }
+
+    .water-tile .dir-chart-title span {
+        display: none;
+    }
+
+    .wtg {
+        padding: 0.15rem 0.4rem;
+    }
 }
 
 .water-chart-area {
@@ -1151,6 +1153,17 @@ header h1 {
     width: 100%;
     height: 100%;
     border: 0;
+}
+
+/* Our own title sits over the Grafana iframe's header, whose "Water
+   Temp (F)" text Grafana truncates on narrow tiles. */
+.water-chart-area .iframe-title {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: white;
+    z-index: 1;
 }
 
 .water-temp-guide-side {
