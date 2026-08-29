@@ -883,10 +883,10 @@ header h1 {
 .lg-glyph {
     position: relative;
     display: inline-block;
-    width: 22px;
-    height: 9px;
+    width: 26px;
+    height: 12px;
     border-radius: 3px;
-    background: linear-gradient(90deg, #4285F4, #34a853);
+    background: #2c3e50;
     flex-shrink: 0;
 }
 
@@ -894,23 +894,22 @@ header h1 {
 .lg-brackets::after {
     content: "";
     position: absolute;
-    top: -2px;
-    bottom: -2px;
+    top: 2px;
+    bottom: 2px;
     width: 5px;
     border: 2px solid white;
-    filter: drop-shadow(0 0 1px rgba(44, 62, 80, 0.7));
 }
 
 .lg-brackets::before {
-    left: 1px;
+    left: 5px;
     border-right: none;
-    border-radius: 3px 0 0 3px;
+    border-radius: 2px 0 0 2px;
 }
 
 .lg-brackets::after {
-    right: 1px;
+    right: 5px;
     border-left: none;
-    border-radius: 0 3px 3px 0;
+    border-radius: 0 2px 2px 0;
 }
 
 .sail-refresh {
