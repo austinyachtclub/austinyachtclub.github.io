@@ -875,15 +875,15 @@ header h1 {
     flex-wrap: wrap;
     gap: 0.45rem;
     margin: 2px 0 0;
-    font-size: 0.74rem;
-    color: #7d8896;
+    font-size: 0.66rem;
+    color: #8a95a3;
 }
 
 .lg-glyph {
     position: relative;
     display: inline-block;
-    width: 28px;
-    height: 12px;
+    width: 22px;
+    height: 9px;
     border-radius: 3px;
     background: linear-gradient(90deg, #4285F4, #34a853);
     flex-shrink: 0;
