@@ -439,10 +439,10 @@
             }
             var cardinals = [["N", 0], ["E", 90], ["S", 180], ["W", 270]].map(function (c) {
                 var a = (c[1] - CAMERA_BEARING) * Math.PI / 180;
-                var x = 36 * Math.sin(a), y = -36 * Math.cos(a);
-                return '<text x="' + x.toFixed(1) + '" y="' + (y + 3.5).toFixed(1) + '" text-anchor="middle" ' +
-                       'font-size="10" font-weight="' + (c[0] === "N" ? 700 : 400) + '" ' +
-                       'fill="' + (c[0] === "N" ? "#ffb08a" : "rgba(255,255,255,0.85)") + '">' + c[0] + "</text>";
+                var x = 35 * Math.sin(a), y = -35 * Math.cos(a);
+                return '<text x="' + x.toFixed(1) + '" y="' + (y + 4.5).toFixed(1) + '" text-anchor="middle" ' +
+                       'font-size="14" font-weight="700" ' +
+                       'fill="' + (c[0] === "N" ? "#ffb08a" : "rgba(255,255,255,0.9)") + '">' + c[0] + "</text>";
             }).join("");
             el.innerHTML =
                 '<svg viewBox="-60 -60 120 120" role="img" aria-label="Wind ' + w.dir_deg + ' degrees">' +
@@ -452,8 +452,9 @@
                 '<g transform="rotate(' + screenAngle + ')">' +
                 '<polygon points="0,-30 6,10 0,4 -6,10" fill="#ff5a4a" stroke="rgba(255,255,255,0.9)" stroke-width="1"/>' +
                 "</g>" +
-                '<circle r="2.5" fill="white"/>' +
-                '<text x="0" y="47" text-anchor="middle" font-size="9.5" font-weight="600" fill="rgba(255,255,255,0.9)">wind ' + w.dir_deg + "°</text>" +
+                '<text x="0" y="6" text-anchor="middle" font-size="17" font-weight="700" fill="white" ' +
+                'stroke="rgba(15,25,38,0.85)" stroke-width="3.5" stroke-linejoin="round" ' +
+                'style="paint-order: stroke fill">' + w.dir_deg + "°</text>" +
                 "</svg>";
             el.hidden = false;
         }
@@ -465,10 +466,10 @@
                 '<svg viewBox="-60 -60 120 120" role="img" aria-label="Wind speed ' + w.wind_kn + ' knots">' +
                 '<circle r="56" fill="rgba(15,25,38,0.55)"/>' +
                 '<circle r="54" fill="none" stroke="rgba(255,255,255,0.75)" stroke-width="1.5"/>' +
-                '<text x="0" y="2" text-anchor="middle" font-size="26" font-weight="700" fill="white">' + w.wind_kn + "</text>" +
-                '<text x="0" y="20" text-anchor="middle" font-size="11" font-weight="600" fill="rgba(255,255,255,0.85)">kn</text>' +
+                '<text x="0" y="8" text-anchor="middle" font-size="38" font-weight="700" fill="white">' + w.wind_kn +
+                '<tspan font-size="16" font-weight="600" fill="rgba(255,255,255,0.85)" dy="-14"> kn</tspan></text>' +
                 (w.gust_kn != null
-                    ? '<text x="0" y="42" text-anchor="middle" font-size="9.5" font-weight="600" fill="rgba(255,255,255,0.9)">gusts ' + w.gust_kn + "</text>"
+                    ? '<text x="0" y="34" text-anchor="middle" font-size="13" font-weight="600" fill="rgba(255,255,255,0.9)">gusts ' + w.gust_kn + "</text>"
                     : "") +
                 "</svg>";
             el.hidden = false;
