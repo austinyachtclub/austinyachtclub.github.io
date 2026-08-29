@@ -452,9 +452,15 @@
                 '<g transform="rotate(' + screenAngle + ')">' +
                 '<polygon points="0,-30 6,10 0,4 -6,10" fill="#ff5a4a" stroke="rgba(255,255,255,0.9)" stroke-width="1"/>' +
                 "</g>" +
-                '<text x="0" y="6" text-anchor="middle" font-size="17" font-weight="700" fill="white" ' +
-                'stroke="rgba(15,25,38,0.85)" stroke-width="3.5" stroke-linejoin="round" ' +
-                'style="paint-order: stroke fill">' + w.dir_deg + "°</text>" +
+                (function () {
+                    // Label sits between the center and E (top); if the needle
+                    // points up there, it hops below the center instead.
+                    var a = ((screenAngle % 360) + 360) % 360;
+                    var labelY = (a < 35 || a > 325) ? 27 : -13;
+                    return '<text x="0" y="' + labelY + '" text-anchor="middle" font-size="17" font-weight="700" fill="white" ' +
+                           'stroke="rgba(15,25,38,0.85)" stroke-width="3.5" stroke-linejoin="round" ' +
+                           'style="paint-order: stroke fill">' + w.dir_deg + "°</text>";
+                })() +
                 "</svg>";
             el.hidden = false;
         }
