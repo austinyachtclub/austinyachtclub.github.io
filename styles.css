@@ -1458,12 +1458,12 @@ footer a:hover {
         display: inline;
     }
 
-    /* The short mobile camera can't fit both dials and the caption pill;
-       the compass already shows the view direction. The dials anchor to the
-       top corners because the camera image is top-aligned, so they always
-       sit over the photo even when it runs shorter than the frame. */
+    /* Compact caption pill between the dials on small screens */
     .cam-note {
-        display: none;
+        font-size: 0.68rem;
+        padding: 0.25rem 0.6rem;
+        bottom: 12px;
+        white-space: nowrap;
     }
 
     .cam-compass {
