@@ -874,7 +874,7 @@ header h1 {
     justify-content: center;
     flex-wrap: wrap;
     gap: 0.45rem;
-    margin: 0.6rem 0 0;
+    margin: 2px 0 0;
     font-size: 0.74rem;
     color: #7d8896;
 }
