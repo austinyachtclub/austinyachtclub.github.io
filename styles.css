@@ -1072,33 +1072,41 @@ header h1 {
     letter-spacing: 0.02em;
 }
 
-.weather-layout {
+/* One grid holds the camera, the two wind ribbons and the three stat
+   tiles, so each viewport can pair them up with named areas. */
+.weather-grid {
     display: grid;
     grid-template-columns: 1fr 2.1fr 1fr;
+    grid-template-areas:
+        "speed cam   dir"
+        "temp  water hum";
     gap: 1rem;
     align-items: stretch;
-    margin-bottom: 1rem;
 }
 
-.weather-layout .weather-embed-cam {
+.weather-grid .weather-embed {
+    margin-bottom: 0;
+}
+
+.weather-grid .weather-embed-cam {
+    grid-area: cam;
     margin: 0;
     max-width: none;
 }
 
-.weather-side {
-    display: grid;
-    grid-auto-rows: 1fr;
-    gap: 1rem;
-    min-height: 0;
-}
+#speedPanel { grid-area: speed; }
+#dirPanel { grid-area: dir; }
+#tempPanel { grid-area: temp; }
+#humPanel { grid-area: hum; }
+.water-tile { grid-area: water; }
 
-.weather-side .weather-embed {
-    margin-bottom: 0;
+/* Wind ribbons stretch to the camera's row height; their content fills them */
+.weather-ribbon {
     position: relative;
     min-height: 0;
 }
 
-.weather-side .weather-embed iframe {
+.weather-ribbon iframe {
     position: absolute;
     top: 0;
     left: 0;
@@ -1106,20 +1114,13 @@ header h1 {
     height: 100%;
 }
 
-.weather-instruments {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1rem;
-}
-
-.weather-instruments .weather-embed {
-    margin-bottom: 0;
+.weather-stat {
     /* the custom charts inside are absolutely positioned, so the tile needs
        its own height to avoid collapsing */
     min-height: 250px;
 }
 
-.weather-instruments .weather-embed iframe {
+.weather-stat iframe {
     height: 200px;
 }
 
@@ -1380,33 +1381,19 @@ footer a:hover {
         padding: 0.2rem 0.6rem;
     }
 
-    /* Camera full width on top, wind ribbons side by side beneath it */
-    .weather-layout {
+    /* Camera full width on top, then wind speed beside air temp, wind
+       direction beside humidity, and the taller water tile on its own row */
+    .weather-grid {
         grid-template-columns: 1fr 1fr;
+        grid-template-areas:
+            "cam   cam"
+            "speed temp"
+            "dir   hum"
+            "water water";
     }
 
-    .weather-layout .weather-embed-cam {
-        order: -1;
-        grid-column: 1 / -1;
-    }
-
-    .weather-side {
-        grid-auto-rows: auto;
-        grid-template-columns: 1fr;
-    }
-
-    .weather-side .weather-embed {
-        height: 230px;
-    }
-
-    /* Temp + humidity share a row; the taller water tile gets its own */
-    .weather-instruments {
-        grid-template-columns: 1fr 1fr;
-    }
-
-    .weather-instruments .water-tile {
-        grid-column: 1 / -1;
-        order: 3;
+    .weather-ribbon {
+        min-height: 230px;
     }
 
     .water-chart-area {
@@ -1434,7 +1421,7 @@ footer a:hover {
         height: 260px;
     }
 
-    .weather-instruments .weather-embed iframe {
+    .weather-stat iframe {
         height: 180px;
     }
 
@@ -1557,16 +1544,9 @@ footer a:hover {
 /* Very narrow phones: side-by-side tiles get too cramped for the charts,
    so everything stacks full width and the webcam overlays shrink */
 @media (max-width: 400px) {
-    .weather-layout {
+    .weather-grid {
         grid-template-columns: 1fr;
-    }
-
-    .weather-instruments {
-        grid-template-columns: 1fr;
-    }
-
-    .weather-instruments .water-tile {
-        grid-column: auto;
+        grid-template-areas: "cam" "speed" "temp" "dir" "hum" "water";
     }
 
     .cam-compass {

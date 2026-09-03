@@ -87,11 +87,9 @@
                             <span class="sail-tick" style="left:100%">25+</span>
                         </div>
                     </div>
-                    <div class="weather-layout">
-                        <div class="weather-side">
-                            <div class="weather-embed" id="speedPanel">
-                                <iframe src="https://grafana.ageddon.com/d-solo/adw52sz/ayc?orgId=1&amp;from=now-3h&amp;to=now&amp;refresh=5m&amp;panelId=panel-5&amp;theme=light&amp;__feature.dashboardScene=true" title="Live wind speed at Austin Yacht Club" loading="lazy" frameborder="0"></iframe>
-                            </div>
+                    <div class="weather-grid">
+                        <div class="weather-embed weather-ribbon" id="speedPanel">
+                            <iframe src="https://grafana.ageddon.com/d-solo/adw52sz/ayc?orgId=1&amp;from=now-3h&amp;to=now&amp;refresh=5m&amp;panelId=panel-5&amp;theme=light&amp;__feature.dashboardScene=true" title="Live wind speed at Austin Yacht Club" loading="lazy" frameborder="0"></iframe>
                         </div>
                         <div class="weather-embed weather-embed-cam">
                             <img id="camImg" src="https://ayc.ageddon.com/api/bottom/latest.jpg" alt="Live Lake Travis webcam at Austin Yacht Club">
@@ -99,14 +97,10 @@
                             <div id="camCompass" class="cam-compass" hidden></div>
                             <div id="camSpeed" class="cam-compass cam-speed" hidden></div>
                         </div>
-                        <div class="weather-side">
-                            <div class="weather-embed" id="dirPanel">
-                                <iframe src="https://grafana.ageddon.com/d-solo/adw52sz/ayc?orgId=1&amp;from=now-3h&amp;to=now&amp;refresh=5m&amp;panelId=panel-4&amp;theme=light&amp;__feature.dashboardScene=true" title="Live wind direction history at Austin Yacht Club" loading="lazy" frameborder="0"></iframe>
-                            </div>
+                        <div class="weather-embed weather-ribbon" id="dirPanel">
+                            <iframe src="https://grafana.ageddon.com/d-solo/adw52sz/ayc?orgId=1&amp;from=now-3h&amp;to=now&amp;refresh=5m&amp;panelId=panel-4&amp;theme=light&amp;__feature.dashboardScene=true" title="Live wind direction history at Austin Yacht Club" loading="lazy" frameborder="0"></iframe>
                         </div>
-                    </div>
-                    <div class="weather-instruments">
-                        <div class="weather-embed" id="tempPanel">
+                        <div class="weather-embed weather-stat" id="tempPanel">
                             <iframe src="https://grafana.ageddon.com/d-solo/adw52sz/ayc?orgId=1&amp;from=now-3h&amp;to=now&amp;refresh=5m&amp;panelId=panel-2&amp;theme=light&amp;__feature.dashboardScene=true" title="Live air temperature at Austin Yacht Club" loading="lazy" frameborder="0"></iframe>
                         </div>
                         <div class="weather-embed water-tile">
@@ -123,7 +117,7 @@
                                 <span class="wtg" data-season="fall"><span class="wtg-ico">🍂 </span><b>Fall</b> 62–84°</span>
                             </div>
                         </div>
-                        <div class="weather-embed" id="humPanel">
+                        <div class="weather-embed weather-stat" id="humPanel">
                             <iframe src="https://grafana.ageddon.com/d-solo/adw52sz/ayc?orgId=1&amp;from=now-3h&amp;to=now&amp;refresh=5m&amp;panelId=panel-3&amp;theme=light&amp;__feature.dashboardScene=true" title="Live humidity at Austin Yacht Club" loading="lazy" frameborder="0"></iframe>
                         </div>
                     </div>
