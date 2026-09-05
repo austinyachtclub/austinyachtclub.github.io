@@ -83,7 +83,8 @@
                             </div>
                             <div class="sail-marker">
                                 <span class="sail-pill"></span>
-                                <svg class="sail-arrow" viewBox="0 0 6 52" aria-hidden="true"><rect x="1.5" y="0.75" width="3" height="50.5" rx="1.5" fill="white" stroke="rgba(44,62,80,0.55)" stroke-width="1.5"/></svg>
+                                <!-- Stroked, not filled: darkeners treat tall filled shapes as backgrounds. -->
+                                <svg class="sail-arrow" viewBox="0 0 6 52" aria-hidden="true"><path d="M3 2.5 V49.5" fill="none" stroke="rgba(44,62,80,0.55)" stroke-width="5" stroke-linecap="round"/><path d="M3 2.5 V49.5" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"/></svg>
                             </div>
                             <span class="sail-tick" style="left:0%">0</span>
                             <span class="sail-tick" style="left:20%">5 kn</span>
