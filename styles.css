@@ -790,8 +790,10 @@ header h1 {
     transform: translateX(-50%);
 }
 
-/* Lull-to-gust range shown as a pair of brackets [ ] over the bar —
-   explicit strokes stay visible even when browsers force-darken the page */
+/* Lull-to-gust range shown as a pair of brackets [ ] over the bar. The
+   brackets and the needle are inline SVGs with white fill/stroke
+   attributes, which page darkeners (Brave Night Mode, Dark Reader) leave
+   alone; CSS whites would get rewritten to dark. */
 .sail-gustband {
     position: absolute;
     top: -4px;
@@ -800,27 +802,21 @@ header h1 {
     pointer-events: none;
 }
 
-.sail-gustband::before,
-.sail-gustband::after {
-    content: "";
+.band-bracket {
     position: absolute;
     top: 0;
-    bottom: 0;
-    width: 8px;
-    border: 3px solid white;
+    display: block;
+    width: 10px;
+    height: 36px;
     filter: drop-shadow(0 0 1.5px rgba(44, 62, 80, 0.8));
 }
 
-.sail-gustband::before {
+.band-bracket-l {
     left: 0;
-    border-right: none;
-    border-radius: 5px 0 0 5px;
 }
 
-.sail-gustband::after {
+.band-bracket-r {
     right: 0;
-    border-left: none;
-    border-radius: 0 5px 5px 0;
 }
 
 .sail-marker {
@@ -849,11 +845,9 @@ header h1 {
     top: 0;
     left: 0;
     transform: translateX(-50%);
-    width: 3px;
+    display: block;
+    width: 6px;
     height: 52px;
-    background: white;
-    border-radius: 2px;
-    box-shadow: 0 0 0 1.5px rgba(44, 62, 80, 0.55);
 }
 
 .sail-chips {

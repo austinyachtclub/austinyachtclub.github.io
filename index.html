@@ -75,10 +75,15 @@
                             <div class="sail-gustband" hidden>
                                 <span class="band-label band-lull"></span>
                                 <span class="band-label band-gust"></span>
+                                <!-- Brackets and needle are inline SVG with fill/stroke
+                                     attributes: page darkeners (Brave Night Mode / Dark
+                                     Reader) rewrite CSS whites but leave these alone. -->
+                                <svg class="band-bracket band-bracket-l" viewBox="0 0 10 36" aria-hidden="true"><path d="M10 1.5 H3.5 Q1.5 1.5 1.5 3.5 V32.5 Q1.5 34.5 3.5 34.5 H10" fill="none" stroke="white" stroke-width="3"/></svg>
+                                <svg class="band-bracket band-bracket-r" viewBox="0 0 10 36" aria-hidden="true"><path d="M0 1.5 H6.5 Q8.5 1.5 8.5 3.5 V32.5 Q8.5 34.5 6.5 34.5 H0" fill="none" stroke="white" stroke-width="3"/></svg>
                             </div>
                             <div class="sail-marker">
                                 <span class="sail-pill"></span>
-                                <span class="sail-arrow"></span>
+                                <svg class="sail-arrow" viewBox="0 0 6 52" aria-hidden="true"><rect x="1.5" y="0.75" width="3" height="50.5" rx="1.5" fill="white" stroke="rgba(44,62,80,0.55)" stroke-width="1.5"/></svg>
                             </div>
                             <span class="sail-tick" style="left:0%">0</span>
                             <span class="sail-tick" style="left:20%">5 kn</span>
