@@ -9,6 +9,12 @@ html {
     color-scheme: light only;
 }
 
+/* The hidden attribute must win over any display rule (the phone layout
+   gives .sailability display:flex, which otherwise un-hides an empty scale). */
+[hidden] {
+    display: none !important;
+}
+
 body {
     font-family: 'Open Sans', sans-serif;
     line-height: 1.6;
@@ -1002,6 +1008,19 @@ header h1 {
     font-weight: 700;
 }
 
+/* Feed status line above the weather grid (stale or unreachable feed) */
+.weather-notice {
+    margin: 0 0 1rem;
+    padding: 0.55rem 0.9rem;
+    border-radius: 10px;
+    background: #fff4e0;
+    border: 1px solid #f2c98a;
+    color: #7a4b00;
+    font-size: 0.9rem;
+    line-height: 1.45;
+    text-align: center;
+}
+
 .weather-embed {
     position: relative;
     border: 1px solid #dbe6f7;
@@ -1010,16 +1029,6 @@ header h1 {
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     background: white;
     margin-bottom: 1rem;
-}
-
-.grafana-cover {
-    position: absolute;
-    width: 145px;
-    height: 30px;
-    background: white;
-    border-radius: 8px;
-    pointer-events: none;
-    z-index: 2;
 }
 
 .weather-embed iframe {
@@ -1154,7 +1163,8 @@ header h1 {
 
 /* Our own title sits over the Grafana iframe's header, whose "Water
    Temp (F)" text Grafana truncates on narrow tiles. */
-.water-chart-area .iframe-title {
+/* Our title strip over a Grafana panel's own header */
+.weather-embed .iframe-title {
     position: absolute;
     top: 0;
     left: 0;

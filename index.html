@@ -93,9 +93,14 @@
                             <span class="sail-tick" style="left:100%">25+</span>
                         </div>
                     </div>
+                    <div id="weatherNotice" class="weather-notice" role="status" hidden></div>
                     <div class="weather-grid">
+                        <!-- Each Grafana panel gets a white strip with our own title over
+                             its header (which is truncated on narrow tiles and carries a
+                             "Powered by Grafana" badge). Replaced by the custom charts. -->
                         <div class="weather-embed weather-ribbon" id="speedPanel">
-                            <iframe src="https://grafana.ageddon.com/d-solo/adw52sz/ayc?orgId=1&amp;from=now-3h&amp;to=now&amp;refresh=5m&amp;panelId=panel-5&amp;theme=light&amp;__feature.dashboardScene=true" title="Live wind speed at Austin Yacht Club" loading="lazy" frameborder="0"></iframe>
+                            <div class="dir-chart-title iframe-title">Wind Speed</div>
+                            <iframe data-src="https://grafana.ageddon.com/d-solo/adw52sz/ayc?orgId=1&amp;from=now-3h&amp;to=now&amp;refresh=5m&amp;panelId=panel-5&amp;theme=light&amp;__feature.dashboardScene=true" title="Live wind speed at Austin Yacht Club" loading="lazy" frameborder="0"></iframe>
                         </div>
                         <div class="weather-embed weather-embed-cam">
                             <img id="camImg" src="https://ayc.ageddon.com/api/bottom/latest.jpg" alt="Live Lake Travis webcam at Austin Yacht Club">
@@ -104,17 +109,17 @@
                             <div id="camSpeed" class="cam-compass cam-speed" hidden></div>
                         </div>
                         <div class="weather-embed weather-ribbon" id="dirPanel">
-                            <iframe src="https://grafana.ageddon.com/d-solo/adw52sz/ayc?orgId=1&amp;from=now-3h&amp;to=now&amp;refresh=5m&amp;panelId=panel-4&amp;theme=light&amp;__feature.dashboardScene=true" title="Live wind direction history at Austin Yacht Club" loading="lazy" frameborder="0"></iframe>
+                            <div class="dir-chart-title iframe-title">Wind Direction</div>
+                            <iframe data-src="https://grafana.ageddon.com/d-solo/adw52sz/ayc?orgId=1&amp;from=now-3h&amp;to=now&amp;refresh=5m&amp;panelId=panel-4&amp;theme=light&amp;__feature.dashboardScene=true" title="Live wind direction history at Austin Yacht Club" loading="lazy" frameborder="0"></iframe>
                         </div>
                         <div class="weather-embed weather-stat" id="tempPanel">
-                            <iframe src="https://grafana.ageddon.com/d-solo/adw52sz/ayc?orgId=1&amp;from=now-3h&amp;to=now&amp;refresh=5m&amp;panelId=panel-2&amp;theme=light&amp;__feature.dashboardScene=true" title="Live air temperature at Austin Yacht Club" loading="lazy" frameborder="0"></iframe>
+                            <div class="dir-chart-title iframe-title">Air Temp</div>
+                            <iframe data-src="https://grafana.ageddon.com/d-solo/adw52sz/ayc?orgId=1&amp;from=now-3h&amp;to=now&amp;refresh=5m&amp;panelId=panel-2&amp;theme=light&amp;__feature.dashboardScene=true" title="Live air temperature at Austin Yacht Club" loading="lazy" frameborder="0"></iframe>
                         </div>
                         <div class="weather-embed water-tile">
                             <div class="water-chart-area" id="waterPanel">
-                                <!-- Covers the iframe's own "Water Temp (F)" header, which
-                                     Grafana truncates on narrow tiles. -->
                                 <div class="dir-chart-title iframe-title">Water Temp <span>12h · LCRA buoy</span></div>
-                                <iframe src="https://grafana.ageddon.com/d-solo/adw52sz/ayc?orgId=1&amp;from=now-3h&amp;to=now&amp;refresh=5m&amp;panelId=panel-21&amp;theme=light&amp;__feature.dashboardScene=true" title="Live water temperature at Austin Yacht Club" loading="lazy" frameborder="0"></iframe>
+                                <iframe data-src="https://grafana.ageddon.com/d-solo/adw52sz/ayc?orgId=1&amp;from=now-3h&amp;to=now&amp;refresh=5m&amp;panelId=panel-21&amp;theme=light&amp;__feature.dashboardScene=true" title="Live water temperature at Austin Yacht Club" loading="lazy" frameborder="0"></iframe>
                             </div>
                             <div class="water-temp-guide-side" aria-label="Typical water temperature by season">
                                 <span class="wtg" data-season="winter"><span class="wtg-ico">❄️ </span><b>Winter</b> 50–60°</span>
@@ -124,7 +129,8 @@
                             </div>
                         </div>
                         <div class="weather-embed weather-stat" id="humPanel">
-                            <iframe src="https://grafana.ageddon.com/d-solo/adw52sz/ayc?orgId=1&amp;from=now-3h&amp;to=now&amp;refresh=5m&amp;panelId=panel-3&amp;theme=light&amp;__feature.dashboardScene=true" title="Live humidity at Austin Yacht Club" loading="lazy" frameborder="0"></iframe>
+                            <div class="dir-chart-title iframe-title">Humidity</div>
+                            <iframe data-src="https://grafana.ageddon.com/d-solo/adw52sz/ayc?orgId=1&amp;from=now-3h&amp;to=now&amp;refresh=5m&amp;panelId=panel-3&amp;theme=light&amp;__feature.dashboardScene=true" title="Live humidity at Austin Yacht Club" loading="lazy" frameborder="0"></iframe>
                         </div>
                     </div>
                     <div class="weather-links">
@@ -377,6 +383,12 @@
 
     <script>
     (function () {
+        // Backup relay: a Cloudflare Worker that queries the station's Grafana
+        // directly (see worker/README.md). It is only asked when the GitHub
+        // feed below is unreachable or more than RELAY_AFTER_SECS behind, so
+        // a normal visit never touches it. Leave empty until it's deployed.
+        var RELAY_URL = "https://ayc-weather.robert-7ca.workers.dev/";
+        var RELAY_AFTER_SECS = 5 * 60;
         // The contents API serves the freshest data (raw.githubusercontent
         // caches ~5 min server-side); raw and the local file are fallbacks
         // for API rate limits or outages.
@@ -390,11 +402,30 @@
             });
         }
 
-        function fetchWeather(bust) {
+        function fetchFeed(bust) {
             var q = bust ? "?_=" + Date.now() : "";
             return getJson(API_URL, { cache: "no-store", headers: { "Accept": "application/vnd.github.raw+json" } })
                 .catch(function () { return getJson(RAW_URL + q, { cache: "no-cache" }); })
                 .catch(function () { return getJson("weather.json" + q, { cache: "no-cache" }); });
+        }
+
+        function fetchRelay() {
+            return getJson(RELAY_URL + "?_=" + Date.now(), { cache: "no-store" });
+        }
+
+        // The GitHub feed is the normal source. The relay is asked only when
+        // that feed can't be read or is running behind, and even then the
+        // feed's data is kept if the relay fails or isn't fresher.
+        function fetchWeather(bust) {
+            return fetchFeed(bust).then(function (w) {
+                if (!RELAY_URL || ageOf(w) < RELAY_AFTER_SECS) return w;
+                return fetchRelay()
+                    .then(function (r) { return ageOf(r) < ageOf(w) ? r : w; })
+                    .catch(function () { return w; });
+            }, function (err) {
+                if (!RELAY_URL) throw err;
+                return fetchRelay();
+            });
         }
 
         function chip(html) { return '<span class="sail-chip">' + html + '</span>'; }
@@ -417,9 +448,9 @@
             var band = el.querySelector(".sail-gustband");
             band.style.left = lo + "%";
             band.style.width = (hi - lo) + "%";
-            band.title = "lull " + w.lull_kn + " kn to gusts " + w.gust_kn + " kn";
             var lullKn = Math.min(w.lull_kn != null ? w.lull_kn : w.wind_kn, w.wind_kn);
             var gustKn = Math.max(w.gust_kn != null ? w.gust_kn : w.wind_kn, w.wind_kn);
+            band.title = "lull " + lullKn + " kn to gusts " + gustKn + " kn";
             band.querySelector(".band-lull").textContent = "LULL " + lullKn;
             band.querySelector(".band-gust").textContent = "GUST " + gustKn;
             band.classList.toggle("band-tight", hi - lo < 14);
@@ -641,25 +672,6 @@
                 grid + band + avgLine + dot + big + "</svg></div>";
         }
 
-        // The embedded panels render a "Powered by Grafana" badge in their top-right
-        // corner; panels are white, so a small white patch over that corner hides it.
-        function coverGrafanaBadges() {
-            document.querySelectorAll(".grafana-cover").forEach(function (c) { c.remove(); });
-            document.querySelectorAll(".weather-embed iframe").forEach(function (f) {
-                var wrap = f.closest(".weather-embed");
-                if (!wrap || wrap.classList.contains("weather-embed-cam")) return; // cams crop it out already
-                var fr = f.getBoundingClientRect(), wr = wrap.getBoundingClientRect();
-                if (fr.width < 150) return;
-                var c = document.createElement("span");
-                c.className = "grafana-cover";
-                c.style.top = (fr.top - wr.top + 5) + "px";
-                c.style.left = (fr.right - wr.left - 150) + "px";
-                wrap.appendChild(c);
-            });
-        }
-        coverGrafanaBadges();
-        window.addEventListener("resize", function () { setTimeout(coverGrafanaBadges, 250); });
-
         // Horizontal stat chart (air temp, humidity): current value in the title,
         // area sparkline below, "hours ago" ticks along the bottom.
         function tempRound(v) { return v > 72 ? Math.ceil(v) : Math.floor(v); }
@@ -716,45 +728,119 @@
                 grid + area + line + dot + big + "</svg></div>";
         }
 
-        // Live "updated N min ago" stamp; past 6 minutes a refresh button appears.
+        // Readings older than this are "stale": the verdict banner is not
+        // shown for them and the Grafana panels (live from the station) take
+        // over from the custom charts until fresh data arrives.
+        var STALE_SECS = 2 * 3600;
+
+        function ageOf(w) { return Math.max(0, Date.now() / 1000 - w.updated); }
+        function ageText(secs) {
+            var mins = Math.round(secs / 60);
+            if (mins < 1) return "just now";
+            if (mins < 60) return mins + " min ago";
+            var h = secs / 3600;
+            return (h < 10 ? Math.round(h * 10) / 10 : Math.round(h)) + " h ago";
+        }
+
+        // Live "updated N min ago" stamp; past 3 minutes a refresh button appears.
         function updateStamp(w) {
-            var mins = Math.max(0, Math.round((Date.now() / 1000 - w.updated) / 60));
+            var age = ageOf(w);
             document.querySelector(".sail-updated").textContent =
-                mins < 1 ? "updated just now" : "updated " + mins + " min ago";
-            document.getElementById("sailRefresh").hidden = mins < 3;
+                age < 60 ? "updated just now" : "updated " + ageText(age);
+            document.getElementById("sailRefresh").hidden = age < 180;
+        }
+
+        var notice = document.getElementById("weatherNotice");
+        function showNotice(html) { notice.innerHTML = html; notice.hidden = false; }
+        function hideNotice() { notice.hidden = true; }
+
+        // The Grafana panels are the fallback when the JSON feed is missing or
+        // stale; they only start loading (each one is a full Grafana app) when
+        // actually needed, so a normal visit never downloads them.
+        var iframesActive = false;
+        function activateIframes() {
+            if (iframesActive) return;
+            iframesActive = true;
+            document.querySelectorAll(".weather-embed iframe[data-src]").forEach(function (f) {
+                f.src = f.getAttribute("data-src");
+            });
         }
 
         var lastData = null;
         var lastFetchAttempt = 0;
+        var rendered = false;
 
-        // Quietly pull fresh data when it's more than 2 minutes old — checked
-        // once a minute and whenever the user comes back to the tab. Attempts
-        // are throttled to one per minute; the workflow publishes roughly
-        // every minute, so on-screen data stays within a couple minutes live.
-        function maybeAutoRefresh() {
-            if (!lastData || document.hidden) return;
-            var now = Date.now() / 1000;
-            if (now - lastData.updated < 120 || now - lastFetchAttempt < 90) return;
-            lastFetchAttempt = now;
-            fetchWeather(true).then(function (w) {
-                if (w.updated !== lastData.updated) {
-                    lastData = w;
-                    renderAll(w);
+        // Why the readings are old: "updated" is the last time the station had
+        // data, "checked" the last time our updater looked. A recent check with
+        // an old update means the station is quiet; an old check means the
+        // updater itself is behind and the Grafana charts are still current.
+        function staleNotice(w, tail) {
+            var age = ageText(ageOf(w)).replace(" ago", "");
+            var checkedAge = Math.max(0, Date.now() / 1000 - (w.checked || w.updated));
+            if (checkedAge < 15 * 60) {
+                return "&#9888;&#xFE0E; The wind station hasn't reported in " + age +
+                       ". It's a little Raspberry Pi up in the clubhouse rafters, and it drops out from time to time " +
+                       "but usually comes back on its own. Please be patient with our little worker bee &#128029; " + tail;
+            }
+            return "&#9888;&#xFE0E; Our conditions updater is running behind (last update " + age + " ago). " + tail;
+        }
+
+        function applyData(w) {
+            var age = ageOf(w);
+            if (age > STALE_SECS) {
+                // Stale: no verdict (it would describe hours-old wind), and the
+                // charts fall through to Grafana, which reads the station directly.
+                lastData = w;
+                if (!rendered) {
+                    activateIframes();
+                    showNotice(staleNotice(w, "The charts below come straight from the club's weather station."));
                 } else {
                     updateStamp(w);
+                    showNotice(staleNotice(w, "Showing the last known conditions."));
                 }
-            }).catch(function () { /* try again next cycle */ });
+                return;
+            }
+            if (lastData && w.updated === lastData.updated && rendered) {
+                updateStamp(w);
+                return;
+            }
+            lastData = w;
+            hideNotice();
+            renderAll(w);
+            rendered = true;
+        }
+
+        // Pull data when there is none, or it's more than 2 minutes old —
+        // checked once a minute and whenever the user comes back to the tab.
+        // Attempts are throttled to one per 90 s; the workflow publishes
+        // roughly every minute, so on-screen data stays within a couple
+        // minutes live and a stale page recovers on its own once the feed does.
+        function maybeAutoRefresh() {
+            if (document.hidden) return;
+            var now = Date.now() / 1000;
+            if (lastData && now - lastData.updated < 120) return;
+            if (now - lastFetchAttempt < 90) return;
+            lastFetchAttempt = now;
+            fetchWeather(true).then(applyData).catch(function () {
+                if (!lastData) {
+                    activateIframes();
+                    showNotice("Couldn't reach the live readings right now. The charts below come straight from the club's weather station.");
+                }
+            });
         }
 
         // The camera snapshot: reload every minute, re-render the flanking
         // ribbons when its size settles (the image defines the row height),
         // and hide the frame if the camera host is unreachable.
         var camImg = document.getElementById("camImg");
+        var camLoaded = false;
         camImg.addEventListener("load", function () {
-            if (lastData) { renderSpeedChart(lastData); renderDirChart(lastData); }
+            camLoaded = true;
+            if (lastData && rendered) { renderSpeedChart(lastData); renderDirChart(lastData); }
         });
         camImg.addEventListener("error", function () {
-            camImg.closest(".weather-embed-cam").style.display = "none";
+            // Never had a frame: hide the box. Had one: keep it and retry next minute.
+            if (!camLoaded) camImg.closest(".weather-embed-cam").style.display = "none";
         });
         function refreshCam() {
             if (document.hidden) return;
@@ -762,12 +848,19 @@
         }
 
         setInterval(function () {
-            if (lastData) updateStamp(lastData);
+            if (lastData && rendered) {
+                updateStamp(lastData);
+                if (ageOf(lastData) > STALE_SECS) applyData(lastData);
+            }
             maybeAutoRefresh();
             refreshCam();
         }, 60000);
         document.addEventListener("visibilitychange", function () {
-            if (!document.hidden) maybeAutoRefresh();
+            if (document.hidden) return;
+            // Charts skipped while the tab had no layout (opened in the
+            // background) get drawn now that it is visible.
+            if (lastData && rendered) renderAll(lastData);
+            maybeAutoRefresh();
         });
 
         document.getElementById("sailRefresh").addEventListener("click", function () {
@@ -798,17 +891,24 @@
             sessionStorage.removeItem("aycRefresh");
         } catch (e) { /* private mode */ }
 
+        var resizeTimer;
+        window.addEventListener("resize", function () {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(function () { if (lastData && rendered) renderAll(lastData); }, 200);
+        });
+
+        // If the feed hasn't answered within a few seconds, start the Grafana
+        // panels so the tiles aren't blank; a late answer still takes over.
+        var slowTimer = setTimeout(activateIframes, 3000);
+        lastFetchAttempt = Date.now() / 1000;
         fetchWeather(wasRefreshed).then(function (w) {
-            var ageHours = (Date.now() / 1000 - w.updated) / 3600;
-            if (ageHours > 2) return; // stale data: keep everything hidden
-            lastData = w;
-            renderAll(w);
-            var resizeTimer;
-            window.addEventListener("resize", function () {
-                clearTimeout(resizeTimer);
-                resizeTimer = setTimeout(function () { renderAll(w); }, 200);
-            });
-        }).catch(function () { /* no data available: banner stays hidden */ });
+            clearTimeout(slowTimer);
+            applyData(w);
+        }).catch(function () {
+            clearTimeout(slowTimer);
+            activateIframes();
+            showNotice("Couldn't reach the live readings right now. The charts below come straight from the club's weather station.");
+        });
     })();
     </script>
 </body>

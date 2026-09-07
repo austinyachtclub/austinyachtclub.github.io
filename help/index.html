@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CORS request for the AYC weather page · AYCweather.com</title>
+    <meta name="description" content="Technical note for the Grafana admin: CORS headers that would let aycweather.com read the weather station directly.">
+    <meta name="robots" content="noindex">
+    <meta name="theme-color" content="#4285F4">
+    <link rel="canonical" href="https://aycweather.com/help/">
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html { color-scheme: light only; }
+        body {
+            font-family: 'Open Sans', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(160deg, #4285F4, #E88B5D) fixed;
+            min-height: 100vh;
+            padding: 1.5rem 1rem 3rem;
+        }
+        .wrap { max-width: 760px; margin: 0 auto; }
+        header { text-align: center; color: white; margin-bottom: 1.25rem; }
+        header h1 { font-size: 1.6rem; line-height: 1.25; text-shadow: 0 2px 8px rgba(0,0,0,0.25); }
+        header p { margin-top: 0.4rem; opacity: 0.95; }
+        header a { color: white; }
+        .card {
+            background: white;
+            border-radius: 14px;
+            padding: 1.5rem;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        }
+        .card + .card { margin-top: 1rem; }
+        h2 { font-size: 1.1rem; color: #2c3e50; margin: 1.4rem 0 0.5rem; }
+        h2:first-child { margin-top: 0; }
+        p { margin: 0.6rem 0; }
+        ul { margin: 0.4rem 0 0.6rem 1.3rem; }
+        li { margin: 0.25rem 0; }
+        code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.9em; background: #f1f5fb; padding: 0.1em 0.35em; border-radius: 4px; }
+        pre {
+            background: #1f2937;
+            color: #e5e7eb;
+            border-radius: 10px;
+            padding: 0.9rem 1rem;
+            overflow-x: auto;
+            font-size: 0.82rem;
+            line-height: 1.5;
+            margin: 0.6rem 0 0.9rem;
+        }
+        pre code { background: none; padding: 0; color: inherit; font-size: inherit; }
+        .why { background: #f1f5fb; border-left: 4px solid #4285F4; padding: 0.7rem 0.9rem; border-radius: 0 8px 8px 0; }
+        footer { text-align: center; color: white; margin-top: 1.5rem; font-size: 0.9rem; }
+        footer a { color: white; }
+        @media (max-width: 560px) {
+            body { padding: 1rem 0.6rem 2rem; }
+            .card { padding: 1.1rem; border-radius: 12px; }
+            header h1 { font-size: 1.35rem; }
+        }
+        @media print { body { background: white; padding: 0; } .card { box-shadow: none; } header, footer { color: #333; } }
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <header>
+            <h1>A small request for the weather station's Grafana proxy</h1>
+            <p>From <a href="https://aycweather.com/">aycweather.com</a>, the Austin Yacht Club weather page</p>
+        </header>
+
+        <div class="card">
+            <p class="why">
+                <strong>The ask in one line:</strong> add CORS headers for <code>https://aycweather.com</code> on
+                <code>POST /api/ds/query</code> at <code>grafana.ageddon.com</code>, and answer the
+                <code>OPTIONS</code> preflight there too.
+            </p>
+
+            <h2>Why</h2>
+            <p>
+                The weather page reads the station through a small GitHub Actions updater that queries Grafana every
+                minute and publishes a JSON file. When that updater falls behind, the page can't ask Grafana from the
+                browser (no CORS headers, so the browser blocks the request) and has to fall back to iframes. With the
+                headers below, the page could query the station directly and always draw its own charts.
+            </p>
+            <p>
+                It only needs the anonymous datasource query the updater already uses. No credentials or cookies are
+                involved, and nothing else on the server needs to change.
+            </p>
+
+            <h2>Headers needed on <code>/api/ds/query</code></h2>
+<pre><code>Access-Control-Allow-Origin: https://aycweather.com
+Access-Control-Allow-Methods: POST, OPTIONS
+Access-Control-Allow-Headers: Content-Type
+Access-Control-Max-Age: 86400</code></pre>
+            <p>
+                The browser sends an <code>OPTIONS</code> preflight first. Grafana returns 404 for that, so the proxy
+                has to answer it itself with a <code>204</code> and the headers above, then add the
+                <code>Allow-Origin</code> header to the proxied <code>POST</code> response.
+            </p>
+
+            <h2>If the proxy is nginx</h2>
+<pre><code>location = /api/ds/query {
+    if ($request_method = OPTIONS) {
+        add_header Access-Control-Allow-Origin  "https://aycweather.com" always;
+        add_header Access-Control-Allow-Methods "POST, OPTIONS" always;
+        add_header Access-Control-Allow-Headers "Content-Type" always;
+        add_header Access-Control-Max-Age       86400 always;
+        return 204;
+    }
+    add_header Access-Control-Allow-Origin "https://aycweather.com" always;
+    proxy_pass http://grafana;
+}</code></pre>
+
+            <h2>If the proxy is Caddy</h2>
+<pre><code>@dsquery path /api/ds/query
+handle @dsquery {
+    @preflight method OPTIONS
+    handle @preflight {
+        header Access-Control-Allow-Origin  "https://aycweather.com"
+        header Access-Control-Allow-Methods "POST, OPTIONS"
+        header Access-Control-Allow-Headers "Content-Type"
+        header Access-Control-Max-Age       "86400"
+        respond 204
+    }
+    header Access-Control-Allow-Origin "https://aycweather.com"
+    reverse_proxy grafana:3000
+}</code></pre>
+
+            <h2>If it's only behind Cloudflare</h2>
+            <p>
+                A Cloudflare Worker on the route <code>grafana.ageddon.com/api/ds/query</code> can do the same thing:
+                answer <code>OPTIONS</code> with a 204 plus the headers above, and add the <code>Allow-Origin</code>
+                header to the response it fetches from the origin.
+            </p>
+
+            <h2>How to check it worked</h2>
+            <p>This should print an <code>access-control-allow-origin</code> line:</p>
+<pre><code>curl -s -D - -o /dev/null -X OPTIONS \
+  -H "Origin: https://aycweather.com" \
+  -H "Access-Control-Request-Method: POST" \
+  -H "Access-Control-Request-Headers: content-type" \
+  https://grafana.ageddon.com/api/ds/query</code></pre>
+
+            <p>Thank you! The whole club leans on that little Raspberry Pi in the rafters. 🐝</p>
+        </div>
+
+        <footer>
+            <p>Questions? <a href="mailto:robert@douglasmining.com">robert@douglasmining.com</a> · <a href="https://aycweather.com/">Back to AYC Weather</a></p>
+        </footer>
+    </div>
+</body>
+</html>
