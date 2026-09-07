@@ -1,0 +1,7 @@
+name = "ayc-weather"
+main = "src/index.js"
+compatibility_date = "2026-09-01"
+workers_dev = true
+
+# Optional, once aycweather.com's DNS is on Cloudflare:
+# routes = [{ pattern = "api.aycweather.com", custom_domain = true }]

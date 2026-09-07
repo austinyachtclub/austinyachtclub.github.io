@@ -87,6 +87,19 @@ def agg(pts, minutes):
     return [[b + minutes * 60, sum(vs) / len(vs)] for b, vs in sorted(buckets.items())]
 
 
+def heartbeat(out_path, now):
+    """Re-save the previous weather.json with a fresh "checked" stamp."""
+    try:
+        with open(out_path) as f:
+            data = json.load(f)
+    except (OSError, ValueError):
+        return 1
+    data["checked"] = int(now)
+    with open(out_path, "w") as f:
+        json.dump(data, f, indent=1)
+    return 0
+
+
 def main(out_path):
     with ThreadPoolExecutor(max_workers=2) as ex:
         main_job = ex.submit(flux_multi, MAIN_Q, "now-3h")
@@ -105,8 +118,10 @@ def main(out_path):
     rain_acc = window_values(m.get("env.raingauge.event_acc", []), 3600, now)
 
     if not wind:
-        print("no wind data; leaving previous weather.json in place")
-        return 1
+        # Station quiet: keep the previous readings but stamp "checked" so the
+        # page can tell a quiet station from an updater that stopped running.
+        print("no wind data in the last 30 min; heartbeat only", file=sys.stderr)
+        return heartbeat(out_path, now)
 
     avg = sum(wind) / len(wind)
     gust = max(gusts) if gusts else avg
@@ -154,6 +169,7 @@ def main(out_path):
 
     data = {
         "updated": int(now),
+        "checked": int(now),
         "verdict": verdict,
         "color": color,
         "tagline": tagline,

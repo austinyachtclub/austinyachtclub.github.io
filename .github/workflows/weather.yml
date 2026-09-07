@@ -2,13 +2,16 @@ name: Update weather data
 
 on:
   schedule:
-    # Relaunches the update loop; each run refreshes weather.json every
-    # minute for ~4.5 hours, so scheduling only has to succeed every 4h.
-    - cron: "7 */4 * * *"
+    # Each run refreshes weather.json every minute for ~5.75 hours and then
+    # dispatches its own successor, so coverage is continuous even when
+    # GitHub skips or delays a cron tick (it often does, by 30-90 min).
+    # The 2-hourly cron is the backstop: a fresh run cancels the old one.
+    - cron: "23 */2 * * *"
   workflow_dispatch:
 
 permissions:
   contents: write
+  actions: write
 
 concurrency:
   group: weather-loop
@@ -17,18 +20,24 @@ concurrency:
 jobs:
   update:
     runs-on: ubuntu-latest
-    timeout-minutes: 285
+    timeout-minutes: 358
     steps:
       - uses: actions/checkout@v4
 
-      - name: Fetch conditions every minute for ~4.5 hours
+      - name: Fetch conditions every minute for ~5.75 hours
         # Single amended commit force-pushed to weather-data keeps history
         # clean; a failed fetch skips the push and tries again next minute.
         run: |
           tmp=$(mktemp -d)
           cd "$tmp"
           git init -q -b weather-data
-          for i in $(seq 1 300); do
+          # Start from the last published file so a quiet station still gets
+          # a "checked" heartbeat on top of the previous readings.
+          curl -fsSL -H "Authorization: Bearer ${GITHUB_TOKEN}" -H "Accept: application/vnd.github.raw+json" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/contents/weather.json?ref=weather-data" \
+            -o weather.json || echo "no previous weather.json"
+          end=$((SECONDS + 345 * 60))
+          while [ "$SECONDS" -lt "$end" ]; do
             if python3 "$GITHUB_WORKSPACE/scripts/fetch_weather.py" weather.json > /dev/null; then
               git add weather.json
               git -c user.name="weather-bot" -c user.email="actions@github.com" commit -q --amend -m "weather update" 2>/dev/null \
@@ -42,3 +51,10 @@ jobs:
           done
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Hand off to the next run
+        # workflow_dispatch is one of the events GITHUB_TOKEN is allowed to
+        # trigger; the new run's concurrency group cancels this one.
+        run: gh workflow run weather.yml -R "$GITHUB_REPOSITORY" --ref "$GITHUB_REF_NAME"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

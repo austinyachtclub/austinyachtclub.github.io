@@ -1,0 +1,5 @@
+{
+  "name": "ayc-weather-relay",
+  "private": true,
+  "type": "module"
+}
