@@ -50,6 +50,16 @@
         }
         pre code { background: none; padding: 0; color: inherit; font-size: inherit; }
         .why { background: #f1f5fb; border-left: 4px solid #4285F4; padding: 0.7rem 0.9rem; border-radius: 0 8px 8px 0; }
+        .part { font-size: 0.8rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #E88B5D; margin: 0 0 0.5rem; }
+        .codewrap { position: relative; }
+        .copy {
+            position: absolute; top: 0.45rem; right: 0.45rem;
+            font: 600 0.75rem 'Open Sans', sans-serif;
+            color: #1f2937; background: #e5e7eb; border: 0; border-radius: 6px;
+            padding: 0.25rem 0.6rem; cursor: pointer;
+        }
+        .copy:hover { background: #d1d5db; }
+        .copy.done { background: #34a853; color: white; }
         footer { text-align: center; color: white; margin-top: 1.5rem; font-size: 0.9rem; }
         footer a { color: white; }
         @media (max-width: 560px) {
@@ -67,7 +77,69 @@
             <p>From <a href="https://aycweather.com/">aycweather.com</a>, the Austin Yacht Club weather page</p>
         </header>
 
-        <div class="card">
+        <div class="card" id="part-two">
+            <p class="part">Help Part Two</p>
+            <p class="why">
+                <strong>Status after the first try:</strong> the headers are arriving (thank you!), but a browser
+                still rejects them for two reasons. Fix both and it works. Part One, the original ask, is further down.
+            </p>
+
+            <h2>1. The origin value needs its scheme</h2>
+            <p>
+                The rule currently sends <code>access-control-allow-origin: aycweather.com</code>. Browsers compare
+                it against the page's origin character for character, so it has to be exactly:
+            </p>
+<pre><code>https://aycweather.com</code></pre>
+
+            <h2>2. The <code>OPTIONS</code> preflight has to return a 2xx</h2>
+            <p>
+                The preflight still comes back <code>HTTP/2 404</code>. Grafana doesn't answer <code>OPTIONS</code>,
+                and a Cloudflare response-header rule can only add headers, it can't change the status code, so the
+                browser throws the response away. Something has to answer <code>OPTIONS</code> with a
+                <code>204</code>. On Cloudflare the cleanest way is a tiny Worker on just this path.
+            </p>
+
+            <h2>The Worker (copy and paste)</h2>
+<pre><code>export default {
+  async fetch(request) {
+    const cors = {
+      "Access-Control-Allow-Origin": "https://aycweather.com",
+      "Access-Control-Allow-Methods": "POST, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type",
+      "Access-Control-Max-Age": "86400",
+    };
+    if (request.method === "OPTIONS") {
+      return new Response(null, { status: 204, headers: cors });
+    }
+    const res = await fetch(request);
+    const out = new Response(res.body, res);
+    for (const [k, v] of Object.entries(cors)) out.headers.set(k, v);
+    return out;
+  },
+};</code></pre>
+
+            <h2>Where it goes</h2>
+            <ul>
+                <li>Cloudflare dashboard → <strong>Workers &amp; Pages</strong> → <strong>Create</strong> → start from
+                    "Hello World" → replace the code with the block above → <strong>Deploy</strong>.</li>
+                <li>Then in the <code>ageddon.com</code> zone → <strong>Workers Routes</strong> → <strong>Add route</strong>:
+                    route <code>grafana.ageddon.com/api/ds/query</code>, pointing at that Worker.</li>
+                <li>With the Worker in place, the response-header rule can be deleted. The Worker sets the same
+                    headers with the corrected origin, and nothing else on the server changes.</li>
+            </ul>
+
+            <h2>Check</h2>
+            <p>When this prints <code>HTTP/2 204</code> and <code>access-control-allow-origin: https://aycweather.com</code>, it's done:</p>
+<pre><code>curl -s -D - -o /dev/null -X OPTIONS \
+  -H "Origin: https://aycweather.com" \
+  -H "Access-Control-Request-Method: POST" \
+  -H "Access-Control-Request-Headers: content-type" \
+  https://grafana.ageddon.com/api/ds/query</code></pre>
+            <p>Thanks again. The little worker bee in the rafters is about to get a direct line to the page. 🐝</p>
+        </div>
+
+        <div class="card" id="part-one">
+            <p class="part">Help Part One · the original request</p>
             <p class="why">
                 <strong>The ask in one line:</strong> add CORS headers for <code>https://aycweather.com</code> on
                 <code>POST /api/ds/query</code> at <code>grafana.ageddon.com</code>, and answer the
@@ -147,5 +219,26 @@ handle @dsquery {
             <p>Questions? <a href="mailto:robert@douglasmining.com">robert@douglasmining.com</a> · <a href="https://aycweather.com/">Back to AYC Weather</a></p>
         </footer>
     </div>
+    <script>
+    // A Copy button on every code block, so each piece can be grabbed in one click.
+    document.querySelectorAll("pre").forEach(function (pre) {
+        var wrap = document.createElement("div");
+        wrap.className = "codewrap";
+        pre.parentNode.insertBefore(wrap, pre);
+        wrap.appendChild(pre);
+        var btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "copy";
+        btn.textContent = "Copy";
+        btn.addEventListener("click", function () {
+            navigator.clipboard.writeText(pre.textContent).then(function () {
+                btn.textContent = "Copied";
+                btn.classList.add("done");
+                setTimeout(function () { btn.textContent = "Copy"; btn.classList.remove("done"); }, 1500);
+            }, function () { btn.textContent = "Select and copy"; });
+        });
+        wrap.appendChild(btn);
+    });
+    </script>
 </body>
 </html>
