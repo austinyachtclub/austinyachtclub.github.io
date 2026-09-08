@@ -383,12 +383,12 @@
 
     <script>
     (function () {
-        // Backup relay: a Cloudflare Worker that queries the station's Grafana
-        // directly (see worker/README.md). It is only asked when the GitHub
-        // feed below is unreachable or more than RELAY_AFTER_SECS behind, so
-        // a normal visit never touches it. Leave empty until it's deployed.
+        // Backups, used only when the GitHub feed below is unreachable or
+        // more than FALLBACK_AFTER_SECS behind, so a normal visit touches
+        // neither: the station's own Grafana (which now allows this origin,
+        // see help/), then a Cloudflare Worker relay (see worker/README.md).
         var RELAY_URL = "https://ayc-weather.robert-7ca.workers.dev/";
-        var RELAY_AFTER_SECS = 5 * 60;
+        var FALLBACK_AFTER_SECS = 5 * 60;
         // The contents API serves the freshest data (raw.githubusercontent
         // caches ~5 min server-side); raw and the local file are fallbacks
         // for API rate limits or outages.
@@ -410,22 +410,43 @@
         }
 
         function fetchRelay() {
-            return getJson(RELAY_URL + "?_=" + Date.now(), { cache: "no-store" });
+            if (!RELAY_URL) return Promise.reject(new Error("no relay configured"));
+            return getJson(RELAY_URL + "?_=" + Date.now(), { cache: "no-store" })
+                .then(function (w) { w.source = "relay"; return w; });
         }
 
-        // The GitHub feed is the normal source. The relay is asked only when
-        // that feed can't be read or is running behind, and even then the
-        // feed's data is kept if the relay fails or isn't fresher.
+        // Straight to the station: the same builder the updater and the relay
+        // use, run here in the browser. Downloaded only on first use, so a
+        // normal visit never pays for it.
+        var corePromise = null;
+        function fetchDirect() {
+            if (!corePromise) corePromise = import("./weather-core.js");
+            return corePromise
+                .then(function (core) { return core.buildWeather(); })
+                .then(function (w) {
+                    if (!w) throw new Error("station has sent no wind data");
+                    w.source = "direct";
+                    return w;
+                });
+        }
+
+        // Anything newer than w, or w itself if the backups can't beat it.
+        function fetchFresher(w) {
+            return fetchDirect()
+                .catch(fetchRelay)
+                .then(function (r) { return ageOf(r) < ageOf(w) ? r : w; })
+                .catch(function () { return w; });
+        }
+
+        // The GitHub feed is the normal source; the backups are asked only
+        // when it can't be read or is running behind.
         function fetchWeather(bust) {
-            return fetchFeed(bust).then(function (w) {
-                if (!RELAY_URL || ageOf(w) < RELAY_AFTER_SECS) return w;
-                return fetchRelay()
-                    .then(function (r) { return ageOf(r) < ageOf(w) ? r : w; })
-                    .catch(function () { return w; });
-            }, function (err) {
-                if (!RELAY_URL) throw err;
-                return fetchRelay();
-            });
+            return fetchFeed(bust).then(
+                function (w) { return ageOf(w) < FALLBACK_AFTER_SECS ? w : fetchFresher(w); },
+                function (err) {
+                    return fetchDirect().catch(fetchRelay).catch(function () { throw err; });
+                }
+            );
         }
 
         function chip(html) { return '<span class="sail-chip">' + html + '</span>'; }

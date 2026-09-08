@@ -2,7 +2,8 @@
 
 A tiny Worker that queries the club's Grafana server the same way
 `scripts/fetch_weather.py` does and returns `weather.json` live, with CORS
-headers, cached for one minute. The page normally reads the GitHub
+headers, cached for one minute. The query and maths live in
+`../weather-core.js`, which `index.html` also imports directly. The page normally reads the GitHub
 `weather-data` feed and asks this relay only when that feed is unreachable
 or more than five minutes behind, so it costs nothing on a normal day.
 
@@ -47,6 +48,12 @@ npx wrangler dev
 ```
 
 Then open http://localhost:8787/.
+
+## Is it still needed?
+
+Grafana now allows `https://aycweather.com` as an origin, so the page's first
+backup is the station itself and this relay is the second. It stays as cover
+for the CORS rule being changed or removed.
 
 ## Free-tier budget
 

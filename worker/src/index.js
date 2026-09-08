@@ -3,7 +3,8 @@
 // GitHub updater publishes, but live and with CORS headers. Results are
 // cached for a minute so a busy race evening is still one Grafana query
 // per minute.
-import { buildWeather } from "./weather.js";
+// Bundled from the repo root at deploy time; index.html loads the same file.
+import { buildWeather } from "../../weather-core.js";
 
 const TTL_MS = 60 * 1000;
 const CORS = {
@@ -56,6 +57,7 @@ export default {
       return json(JSON.stringify({ error: "no wind data in the last 30 minutes" }), 503, { "Cache-Control": "no-store" });
     }
 
+    data.source = "relay";
     const body = JSON.stringify(data);
     memo = { at: now, body };
     if (cache) {

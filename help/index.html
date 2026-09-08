@@ -50,6 +50,7 @@
         }
         pre code { background: none; padding: 0; color: inherit; font-size: inherit; }
         .why { background: #f1f5fb; border-left: 4px solid #4285F4; padding: 0.7rem 0.9rem; border-radius: 0 8px 8px 0; }
+        .done-note { background: #eaf6ec; border-left: 4px solid #34a853; padding: 0.7rem 0.9rem; border-radius: 0 8px 8px 0; }
         .part { font-size: 0.8rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #E88B5D; margin: 0 0 0.5rem; }
         .codewrap { position: relative; }
         .copy {
@@ -78,10 +79,18 @@
         </header>
 
         <div class="card" id="part-two">
-            <p class="part">Help Part Two</p>
-            <p class="why">
-                <strong>Status after the first try:</strong> the headers are arriving (thank you!), but a browser
-                still rejects them for two reasons. Fix both and it works. Part One, the original ask, is further down.
+            <p class="part">Help Part Two · done</p>
+            <p class="done-note">
+                <strong>&#10003; Working as of 7 September 2026.</strong> The preflight returns
+                <code>204</code> with a single <code>access-control-allow-origin: https://aycweather.com</code>, and
+                the weather page now reads the station directly from the browser. Thank you! The steps below are kept
+                as a record of what was changed, in case the rule ever needs rebuilding.
+            </p>
+            <p>
+                Getting there took two corrections after the first attempt: the origin value was missing its scheme,
+                and the <code>OPTIONS</code> preflight returned 404 because a response-header rule can't change a
+                status code. A small Worker answers the preflight instead, and the original header rule was removed
+                so the headers stop arriving twice (browsers reject a doubled <code>Allow-Origin</code>).
             </p>
 
             <h2>1. The origin value needs its scheme</h2>

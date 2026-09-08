@@ -2,6 +2,10 @@
 // A line-for-line port of scripts/fetch_weather.py so the page gets the
 // same shape from either source: same Flux queries, +80 deg vane offset,
 // zone=="shield" sensors, LCRA Mansfield Dam buoy, 5-minute aggregation.
+//
+// Shared by two callers: the Cloudflare Worker in worker/ bundles it at
+// deploy time, and index.html imports it straight from the browser (the
+// club's Grafana allows this page's origin; see help/).
 
 export const GRAFANA = "https://grafana.ageddon.com/api/ds/query";
 const DATASOURCE = { uid: "cf0y3k7lgwa9sd" };
@@ -43,11 +47,10 @@ async function fluxMulti(query, from, fetchImpl) {
     from,
     to: "now",
   });
-  const r = await fetchImpl(GRAFANA, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "User-Agent": USER_AGENT },
-    body,
-  });
+  // User-Agent is a forbidden header in browsers, so only send it off-page.
+  const headers = { "Content-Type": "application/json" };
+  if (typeof document === "undefined") headers["User-Agent"] = USER_AGENT;
+  const r = await fetchImpl(GRAFANA, { method: "POST", headers, body });
   if (!r.ok) throw new Error("grafana responded " + r.status);
   const d = await r.json();
   const out = {};
@@ -82,7 +85,7 @@ function agg(pts, minutes) {
 const tempRound = (v) => (v > 72 ? Math.ceil(v) : Math.floor(v));
 
 /** Returns the weather document, or null when the station has sent no wind
- *  data in the last 30 minutes. */
+ *  data in the last 30 minutes. Callers tag it with their own `source`. */
 export async function buildWeather(fetchImpl = fetch) {
   const [m, water] = await Promise.all([fluxMulti(MAIN_Q, "now-3h", fetchImpl), fluxMulti(WATER_Q, "now-12h", fetchImpl)]);
   const waterPts = water["lcra_wtemp"] || [];
@@ -145,7 +148,6 @@ export async function buildWeather(fetchImpl = fetch) {
   return {
     updated: stamp,
     checked: stamp,
-    source: "relay",
     verdict, color, tagline,
     wind_kn: Math.floor(avg),
     gust_kn: Math.floor(gust),
