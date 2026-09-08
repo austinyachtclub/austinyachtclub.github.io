@@ -378,8 +378,23 @@
         <footer>
             <p>Club specific information? <a href="tel:+15122661336">+1 512 266 1336</a> (AYC General Manager)</p>
             <p>Website issue? <a href="mailto:robert@douglasmining.com">robert@douglasmining.com</a></p>
+            <p><button type="button" class="sources-link" id="sourcesOpen">Something doesn't look right?</button></p>
         </footer>
     </div>
+
+    <dialog id="sourcesDialog" class="sources-dialog" aria-labelledby="sourcesTitle">
+        <button type="button" class="sources-close" id="sourcesClose" aria-label="Close">&times;</button>
+        <h2 id="sourcesTitle">Something doesn't look right?</h2>
+        <p>One of the sources of this page might have gone down, as a backup to this, we have three levels of redundancy.</p>
+        <p class="sources-heading">Source order:</p>
+        <ol id="sourcesList">
+            <li data-src="feed">GitHub feed, refreshed every minute. On a normal visit nothing else loads.</li>
+            <li data-src="direct">Feed more than five minutes behind or unreachable, the page queries the station directly.</li>
+            <li data-src="relay">There is a worker relay, if the direct query fails.</li>
+            <li data-src="grafana">If all three have failed, you may see grafana panels with a notice.</li>
+            <li>If the weather station gets disconnected. There is nothing I can do, so best of luck.</li>
+        </ol>
+    </dialog>
 
     <script>
     (function () {
@@ -782,6 +797,7 @@
         function activateIframes() {
             if (iframesActive) return;
             iframesActive = true;
+            markSource();
             document.querySelectorAll(".weather-embed iframe[data-src]").forEach(function (f) {
                 f.src = f.getAttribute("data-src");
             });
@@ -790,6 +806,30 @@
         var lastData = null;
         var lastFetchAttempt = 0;
         var rendered = false;
+
+        // The "Something doesn't look right?" modal lists the fallback chain;
+        // flag whichever level the numbers on screen actually came from.
+        function markSource() {
+            var live = iframesActive ? "grafana"
+                : (lastData && rendered ? (lastData.source || "feed") : null);
+            document.querySelectorAll("#sourcesList li").forEach(function (li) {
+                li.classList.toggle("src-live", li.getAttribute("data-src") === live);
+            });
+        }
+
+        var sourcesDialog = document.getElementById("sourcesDialog");
+        document.getElementById("sourcesOpen").addEventListener("click", function () {
+            markSource();
+            if (sourcesDialog.showModal) sourcesDialog.showModal();
+            else sourcesDialog.setAttribute("open", "");
+        });
+        document.getElementById("sourcesClose").addEventListener("click", function () {
+            sourcesDialog.close ? sourcesDialog.close() : sourcesDialog.removeAttribute("open");
+        });
+        // Clicking the backdrop reports the dialog itself as the target.
+        sourcesDialog.addEventListener("click", function (e) {
+            if (e.target === sourcesDialog) sourcesDialog.close();
+        });
 
         // Why the readings are old: "updated" is the last time the station had
         // data, "checked" the last time our updater looked. A recent check with
@@ -829,6 +869,7 @@
             hideNotice();
             renderAll(w);
             rendered = true;
+            markSource();
         }
 
         // Pull data when there is none, or it's more than 2 minutes old —

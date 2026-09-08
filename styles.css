@@ -1008,6 +1008,104 @@ header h1 {
     font-weight: 700;
 }
 
+/* "Something doesn't look right?" — footer link and its modal */
+.sources-link {
+    font: inherit;
+    color: inherit;
+    background: none;
+    border: 0;
+    padding: 0;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    cursor: pointer;
+    opacity: 0.9;
+}
+
+.sources-link:hover {
+    opacity: 1;
+}
+
+.sources-dialog {
+    max-width: 34rem;
+    width: calc(100% - 2rem);
+    border: 0;
+    border-radius: 14px;
+    padding: 1.5rem 1.6rem 1.4rem;
+    color: #333;
+    background: white;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+}
+
+.sources-dialog::backdrop {
+    background: rgba(20, 30, 45, 0.55);
+}
+
+.sources-dialog h2 {
+    font-size: 1.15rem;
+    color: #2c3e50;
+    margin: 0 2rem 0.6rem 0;
+}
+
+.sources-dialog p {
+    margin: 0.5rem 0;
+    line-height: 1.55;
+}
+
+.sources-heading {
+    font-weight: 700;
+    color: #2c3e50;
+    margin-top: 1rem !important;
+}
+
+.sources-dialog ol {
+    margin: 0.4rem 0 0 1.2rem;
+    padding: 0;
+}
+
+.sources-dialog li {
+    margin: 0.45rem 0;
+    padding-left: 0.2rem;
+    line-height: 1.5;
+}
+
+/* The level the numbers on screen actually came from */
+.sources-dialog li.src-live {
+    font-weight: 600;
+    color: #1e7e34;
+}
+
+.sources-dialog li.src-live::after {
+    content: " in use now";
+    display: inline-block;
+    margin-left: 0.35rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: white;
+    background: #34a853;
+    border-radius: 999px;
+    padding: 0.05rem 0.5rem;
+    vertical-align: 1px;
+}
+
+.sources-close {
+    position: absolute;
+    top: 0.6rem;
+    right: 0.8rem;
+    font-size: 1.6rem;
+    line-height: 1;
+    color: #7b8794;
+    background: none;
+    border: 0;
+    padding: 0.1rem 0.3rem;
+    cursor: pointer;
+}
+
+.sources-close:hover {
+    color: #2c3e50;
+}
+
 /* Feed status line above the weather grid (stale or unreachable feed) */
 .weather-notice {
     margin: 0 0 1rem;
