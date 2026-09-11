@@ -485,7 +485,7 @@
             el.hidden = false;
         }
 
-        var PILL_GAP = 14;  // room between the two words for the needle to pass
+        var PILL_GAP = 18;  // room between the two words for the needle to pass
         var PILL_SIDE = 5;  // clearance when the pill sits beside the needle
         function renderBanner(w) {
             var el = document.getElementById("sailability");
@@ -721,13 +721,19 @@
             var ly = H - 8, lx = W - R;
             var legend =
                 '<text x="' + lx + '" y="' + ly + '" text-anchor="end" font-size="9.5" fill="#888">lull–gust</text>' +
-                '<rect x="' + (lx - 58) + '" y="' + (ly - 8) + '" width="12" height="9" rx="1.5" fill="rgba(66,133,244,0.15)" stroke="rgba(66,133,244,0.35)" stroke-width="1"/>' +
+                '<rect x="' + (lx - 58) + '" y="' + (ly - 8) + '" width="12" height="9" rx="1.5" fill="rgba(66,133,244,0.22)" stroke="rgba(66,133,244,0.45)" stroke-width="1"/>' +
                 '<text x="' + (lx - 66) + '" y="' + ly + '" text-anchor="end" font-size="9.5" fill="#888">avg</text>' +
                 '<line x1="' + (lx - 100) + '" y1="' + (ly - 3.5) + '" x2="' + (lx - 86) + '" y2="' + (ly - 3.5) + '" stroke="#4285F4" stroke-width="2" stroke-linecap="round"/>';
 
-            var band = '<polygon fill="rgba(66,133,244,0.15)" points="' +
-                pts.map(function (p) { return x(p[3]).toFixed(1) + "," + y(p[0]).toFixed(1); }).join(" ") + " " +
-                pts.slice().reverse().map(function (p) { return x(p[2]).toFixed(1) + "," + y(p[0]).toFixed(1); }).join(" ") + '"/>';
+            // Lull-to-gust band: a tint plus a thin line along each edge, so
+            // the band still has boundaries when a page darkener (Brave
+            // Night Mode, Dark Reader) turns the white ground near-black.
+            var gustEdge = pts.map(function (p) { return x(p[3]).toFixed(1) + "," + y(p[0]).toFixed(1); }).join(" ");
+            var lullEdge = pts.map(function (p) { return x(p[2]).toFixed(1) + "," + y(p[0]).toFixed(1); }).join(" ");
+            var band = '<polygon fill="rgba(66,133,244,0.22)" points="' + gustEdge + " " +
+                pts.slice().reverse().map(function (p) { return x(p[2]).toFixed(1) + "," + y(p[0]).toFixed(1); }).join(" ") + '"/>' +
+                '<polyline fill="none" stroke="rgba(66,133,244,0.45)" stroke-width="1" stroke-linejoin="round" points="' + lullEdge + '"/>' +
+                '<polyline fill="none" stroke="rgba(66,133,244,0.45)" stroke-width="1" stroke-linejoin="round" points="' + gustEdge + '"/>';
             var avgLine = '<polyline fill="none" stroke="#4285F4" stroke-width="2" stroke-linejoin="round" points="' +
                 pts.map(function (p) { return x(p[1]).toFixed(1) + "," + y(p[0]).toFixed(1); }).join(" ") + '"/>';
             var last = pts[pts.length - 1];

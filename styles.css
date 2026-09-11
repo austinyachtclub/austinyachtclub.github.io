@@ -857,7 +857,7 @@ header h1 {
     position: absolute;
     top: 30px;
     display: inline-flex;
-    gap: 14px; /* PILL_GAP in index.html: the needle passes between the words */
+    gap: 18px; /* PILL_GAP in index.html: the needle passes between the words */
     background: #2c3e50;
     border: 1px solid rgba(255, 255, 255, 0.75);
     color: white;
