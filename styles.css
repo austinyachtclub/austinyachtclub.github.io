@@ -835,7 +835,7 @@ header h1 {
     display: block;
     width: 10px;
     height: 36px;
-    filter: drop-shadow(0 0 1.5px rgba(44, 62, 80, 0.8));
+    overflow: visible; /* the dark outline stroke runs past the viewBox */
 }
 
 .band-bracket-l {
@@ -856,7 +856,8 @@ header h1 {
 .sail-pill {
     position: absolute;
     top: 30px;
-    transform: translateX(-50%);
+    display: inline-flex;
+    gap: 14px; /* PILL_GAP in index.html: the needle passes between the words */
     background: #2c3e50;
     border: 1px solid rgba(255, 255, 255, 0.75);
     color: white;
@@ -865,6 +866,11 @@ header h1 {
     padding: 2px 9px;
     border-radius: 999px;
     white-space: nowrap;
+}
+
+/* Beside the needle rather than around it (scale ends): a normal word gap */
+.sail-pill.pill-side {
+    gap: 0.3em;
 }
 
 .sail-arrow {
