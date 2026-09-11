@@ -737,22 +737,43 @@ header h1 {
     background: linear-gradient(135deg, rgba(66, 133, 244, 0.07), rgba(232, 139, 93, 0.07));
     border: 1px solid #dbe6f7;
     border-radius: 14px;
-    padding: 0.6rem 1.5rem 0.9rem;
-    margin-bottom: 1rem;
+    padding: 0.6rem 1.5rem 0.7rem;
     box-shadow: 0 4px 14px rgba(44, 62, 80, 0.08);
+    grid-area: sail;
 }
 
+/* Reading chips above the scale on wide screens; phones get the same
+   facts on the camera banner and in the tiles instead */
+.sail-chips {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.45rem;
+    margin-bottom: 0.75rem;
+}
+
+.sail-chip {
+    background: white;
+    border: 1px solid #dbe6f7;
+    border-radius: 999px;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #2c3e50;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+}
+
+.sail-chip b { color: #4285F4; }
+
+/* "updated N min ago" and the refresh button, at the foot of the
+   weather section once the reading is over six minutes old */
 .sail-top {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
     align-items: center;
     gap: 0.45rem;
-    margin-bottom: 0.75rem;
-}
-
-.sail-top .sail-chips {
-    display: contents;
+    margin-top: 0.75rem;
 }
 
 .sail-scale {
@@ -856,17 +877,9 @@ header h1 {
     height: 52px;
 }
 
-.sail-chips {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 0.45rem;
-}
-
 .sail-updated {
     font-size: 0.72rem;
     color: #999;
-    margin-left: 0.4rem;
 }
 
 /* "LULL n" / "GUST n" ride on the bracket ends, labeling the band */
@@ -934,18 +947,45 @@ header h1 {
     cursor: wait;
 }
 
-.sail-chip {
-    background: white;
-    border: 1px solid #dbe6f7;
-    border-radius: 999px;
-    padding: 0.25rem 0.75rem;
-    font-size: 0.82rem;
-    font-weight: 600;
-    color: #2c3e50;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+/* The verdict, painted across the top of the webcam. Colour follows the
+   scale zone the wind is in. */
+.cam-verdict {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    right: 10px;
+    z-index: 2;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem 1rem;
+    flex-wrap: wrap;
+    padding: 0.5rem 0.9rem;
+    border-radius: 10px;
+    color: white;
+    text-align: left;
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.3);
+    pointer-events: none;
 }
 
-.sail-chip b { color: #4285F4; }
+.cam-verdict b {
+    font-size: 1.15rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    line-height: 1.1;
+}
+
+.cam-verdict span {
+    font-size: 0.92rem;
+    font-weight: 600;
+    opacity: 0.95;
+    white-space: nowrap;
+}
+
+.cv-blue { background: rgba(66, 133, 244, 0.92); }
+.cv-green { background: rgba(46, 158, 79, 0.92); }
+.cv-orange { background: rgba(232, 139, 30, 0.94); }
+.cv-red { background: rgba(217, 54, 62, 0.94); }
 
 /* Heads-up compass overlaid on the webcam */
 .cam-compass {
@@ -1179,6 +1219,7 @@ header h1 {
     display: grid;
     grid-template-columns: 1fr 2.1fr 1fr;
     grid-template-areas:
+        "sail  sail  sail"
         "speed cam   dir"
         "temp  water hum";
     gap: 1rem;
@@ -1455,8 +1496,22 @@ footer a:hover {
         width: auto;
     }
 
-    /* Mobile glance mode: verdict scale first, then camera, then detail.
-       Most phone visitors just want the weather report. */
+    /* Mobile glance mode: the camera with the verdict on it first, the
+       scale under it, then detail. Most phone visitors just want the
+       weather report, so the question shrinks to a line and the club link
+       waits in the footer. */
+    header {
+        margin-bottom: 0.6rem;
+    }
+
+    header h1 {
+        font-size: 1.5rem;
+    }
+
+    .subtitle {
+        display: none;
+    }
+
     .webcam-section .card > p {
         display: none;
     }
@@ -1466,29 +1521,39 @@ footer a:hover {
         margin-bottom: 0.5rem;
     }
 
+    /* The scale sits directly in the card under the camera: no chips, no
+       panel box, and just enough headroom for the LULL/GUST labels */
     .sailability {
         display: flex;
         flex-direction: column;
-        padding: 0.9rem 0.9rem 0.7rem;
+        padding: 0;
+        background: none;
+        border: 0;
+        box-shadow: none;
     }
 
-    /* Chips cluster at the top (wrapping), scale below with its pill */
-    .sail-top {
-        margin-bottom: 0.6rem;
-        gap: 0.35rem;
+    .sail-chips {
+        display: none;
     }
 
-    .sail-chip {
-        font-size: 0.78rem;
-        padding: 0.2rem 0.6rem;
+    .sail-scale {
+        margin-top: 20px;
     }
 
-    /* Camera full width on top, then wind speed beside air temp, wind
-       direction beside humidity, and the taller water tile on its own row */
+    .cam-verdict {
+        top: 8px;
+        left: 8px;
+        right: 8px;
+    }
+
+    /* Camera full width on top with the verdict on it, the scale under
+       it, then wind speed beside air temp, wind direction beside humidity,
+       and the taller water tile on its own row */
     .weather-grid {
         grid-template-columns: 1fr 1fr;
         grid-template-areas:
             "cam   cam"
+            "sail  sail"
             "speed temp"
             "dir   hum"
             "water water";
@@ -1534,42 +1599,39 @@ footer a:hover {
     }
 }
 
-.sail-pill-verdict {
-    display: none;
-}
-
 @media (max-width: 560px) {
-    header {
-        margin-bottom: 1rem;
-    }
-
     header h1 {
-        font-size: 1.7rem;
-        margin-bottom: 0.2rem;
-    }
-
-    .subtitle {
-        font-size: 1rem;
+        font-size: 1.2rem;
+        font-weight: 600;
+        text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
     }
 
     /* Zone names can't fit at this width: colors stay, the verdict word
-       rides in the "now" pill instead. */
+       is on the camera banner instead. */
     .sail-zone {
         font-size: 0;
     }
 
-    .sail-pill-verdict {
-        display: inline;
-    }
-
-    /* The verdict makes the pill long, so it gets its own row under the
-       ticks instead of riding the tick row */
+    /* Ticks sit close together here, so the "now" pill gets its own row
+       under them instead of riding the tick row */
     .sail-scale {
         height: 76px;
     }
 
     .sail-pill {
         top: 50px;
+    }
+
+    .cam-verdict {
+        padding: 0.4rem 0.7rem;
+    }
+
+    .cam-verdict b {
+        font-size: 1.05rem;
+    }
+
+    .cam-verdict span {
+        font-size: 0.82rem;
     }
 
     /* Compact caption pill between the dials on small screens */
@@ -1596,10 +1658,6 @@ footer a:hover {
 @media (max-width: 480px) {
     .container {
         padding: 10px;
-    }
-    
-    header h1 {
-        font-size: 1.8rem;
     }
     
     .card {
@@ -1648,7 +1706,7 @@ footer a:hover {
 @media (max-width: 400px) {
     .weather-grid {
         grid-template-columns: 1fr;
-        grid-template-areas: "cam" "speed" "temp" "dir" "hum" "water";
+        grid-template-areas: "cam" "sail" "speed" "temp" "dir" "hum" "water";
     }
 
     .cam-compass {
