@@ -77,9 +77,11 @@
                                     <span class="band-label band-gust"></span>
                                     <!-- Brackets and needle are inline SVG with fill/stroke
                                          attributes: page darkeners (Brave Night Mode / Dark
-                                         Reader) rewrite CSS whites but leave these alone. -->
-                                    <svg class="band-bracket band-bracket-l" viewBox="0 0 10 36" aria-hidden="true"><path d="M10 1.5 H3.5 Q1.5 1.5 1.5 3.5 V32.5 Q1.5 34.5 3.5 34.5 H10" fill="none" stroke="white" stroke-width="3"/></svg>
-                                    <svg class="band-bracket band-bracket-r" viewBox="0 0 10 36" aria-hidden="true"><path d="M0 1.5 H6.5 Q8.5 1.5 8.5 3.5 V32.5 Q8.5 34.5 6.5 34.5 H0" fill="none" stroke="white" stroke-width="3"/></svg>
+                                         Reader) rewrite CSS whites but leave these alone.
+                                         Each is a dark stroke under a white one, so it reads
+                                         against every zone colour. -->
+                                    <svg class="band-bracket band-bracket-l" viewBox="0 0 10 36" overflow="visible" aria-hidden="true"><path d="M10 1.5 H3.5 Q1.5 1.5 1.5 3.5 V32.5 Q1.5 34.5 3.5 34.5 H10" fill="none" stroke="rgba(44,62,80,0.55)" stroke-width="5" stroke-linecap="round"/><path d="M10 1.5 H3.5 Q1.5 1.5 1.5 3.5 V32.5 Q1.5 34.5 3.5 34.5 H10" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"/></svg>
+                                    <svg class="band-bracket band-bracket-r" viewBox="0 0 10 36" overflow="visible" aria-hidden="true"><path d="M0 1.5 H6.5 Q8.5 1.5 8.5 3.5 V32.5 Q8.5 34.5 6.5 34.5 H0" fill="none" stroke="rgba(44,62,80,0.55)" stroke-width="5" stroke-linecap="round"/><path d="M0 1.5 H6.5 Q8.5 1.5 8.5 3.5 V32.5 Q8.5 34.5 6.5 34.5 H0" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"/></svg>
                                 </div>
                                 <div class="sail-marker">
                                     <span class="sail-pill"></span>
@@ -483,6 +485,8 @@
             el.hidden = false;
         }
 
+        var PILL_GAP = 14;  // room between the two words for the needle to pass
+        var PILL_SIDE = 5;  // clearance when the pill sits beside the needle
         function renderBanner(w) {
             var el = document.getElementById("sailability");
             var MAX = 25; // top of the scale in knots; 20+ zone absorbs anything above
@@ -492,7 +496,7 @@
             var marker = el.querySelector(".sail-marker");
             marker.style.left = p + "%";
             var pill = el.querySelector(".sail-pill");
-            pill.textContent = "now · " + w.wind_kn + " kn";
+            pill.innerHTML = '<span class="pill-now">now</span><span class="pill-kn">' + w.wind_kn + " kn</span>";
 
             var lo = pct(Math.min(w.lull_kn != null ? w.lull_kn : w.wind_kn, w.wind_kn));
             var hi = pct(Math.max(w.gust_kn != null ? w.gust_kn : w.wind_kn, w.wind_kn));
@@ -520,13 +524,20 @@
             el.querySelector(".sail-chips").innerHTML = chips.join("");
             el.hidden = false;
 
-            // Center the pill on the marker, but pin it inside the scale when
-            // it would overflow either end (measured after unhiding).
+            // The needle passes through the gap between "now" and the speed.
+            // Near either end of the scale that would push the pill outside
+            // it, so the pill moves wholly to one side of the needle instead
+            // (measured after unhiding).
             var scaleW = el.querySelector(".sail-scale").clientWidth;
-            var px = p / 100 * scaleW, pw = pill.offsetWidth;
-            if (px - pw / 2 < 0) pill.style.transform = "translateX(" + Math.round(-px) + "px)";
-            else if (px + pw / 2 > scaleW) pill.style.transform = "translateX(" + Math.round(scaleW - px - pw) + "px)";
-            else pill.style.transform = "translateX(-50%)";
+            var px = p / 100 * scaleW;
+            pill.classList.remove("pill-side");
+            var nowEnd = pill.querySelector(".pill-now").getBoundingClientRect().right - pill.getBoundingClientRect().left;
+            var shift = -(nowEnd + PILL_GAP / 2);
+            if (px + shift < 0 || px + shift + pill.offsetWidth > scaleW) {
+                pill.classList.add("pill-side");
+                shift = px + shift < 0 ? PILL_SIDE : -(pill.offsetWidth + PILL_SIDE);
+            }
+            pill.style.transform = "translateX(" + Math.round(shift) + "px)";
         }
 
         // Heads-up compass over the webcam: the camera faces East (090), so the
