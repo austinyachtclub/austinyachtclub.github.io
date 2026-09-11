@@ -59,42 +59,40 @@
             <section class="webcam-section">
                 <div class="card">
 
-                    <div id="sailability" class="sailability" hidden>
-                        <div class="sail-top">
-                            <div class="sail-chips"></div>
-                            <span class="sail-updated"></span>
-                            <button type="button" class="sail-refresh" id="sailRefresh" hidden>refresh</button>
-                        </div>
-                        <div class="sail-scale">
-                            <div class="sail-bar">
-                                <span class="sail-zone sz-blue" style="width:20%" title="under 5 kn">LIGHT AIR</span>
-                                <span class="sail-zone sz-green" style="width:40%" title="5–15 kn">GREAT SAILING</span>
-                                <span class="sail-zone sz-orange" style="width:20%" title="15–20 kn">SPORTY</span>
-                                <span class="sail-zone sz-red" style="width:20%" title="20+ kn">RISKY</span>
-                            </div>
-                            <div class="sail-gustband" hidden>
-                                <span class="band-label band-lull"></span>
-                                <span class="band-label band-gust"></span>
-                                <!-- Brackets and needle are inline SVG with fill/stroke
-                                     attributes: page darkeners (Brave Night Mode / Dark
-                                     Reader) rewrite CSS whites but leave these alone. -->
-                                <svg class="band-bracket band-bracket-l" viewBox="0 0 10 36" aria-hidden="true"><path d="M10 1.5 H3.5 Q1.5 1.5 1.5 3.5 V32.5 Q1.5 34.5 3.5 34.5 H10" fill="none" stroke="white" stroke-width="3"/></svg>
-                                <svg class="band-bracket band-bracket-r" viewBox="0 0 10 36" aria-hidden="true"><path d="M0 1.5 H6.5 Q8.5 1.5 8.5 3.5 V32.5 Q8.5 34.5 6.5 34.5 H0" fill="none" stroke="white" stroke-width="3"/></svg>
-                            </div>
-                            <div class="sail-marker">
-                                <span class="sail-pill"></span>
-                                <!-- Stroked, not filled: darkeners treat tall filled shapes as backgrounds. -->
-                                <svg class="sail-arrow" viewBox="0 0 6 52" aria-hidden="true"><path d="M3 2.5 V49.5" fill="none" stroke="rgba(44,62,80,0.55)" stroke-width="5" stroke-linecap="round"/><path d="M3 2.5 V49.5" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"/></svg>
-                            </div>
-                            <span class="sail-tick" style="left:0%">0</span>
-                            <span class="sail-tick" style="left:20%">5 kn</span>
-                            <span class="sail-tick" style="left:60%">15 kn</span>
-                            <span class="sail-tick" style="left:80%">20 kn</span>
-                            <span class="sail-tick" style="left:100%">25+</span>
-                        </div>
-                    </div>
                     <div id="weatherNotice" class="weather-notice" role="status" hidden></div>
                     <div class="weather-grid">
+                        <!-- Verdict scale: full width above the tiles on wide screens,
+                             under the camera on phones (see the grid areas in styles.css). -->
+                        <div id="sailability" class="sailability" hidden>
+                            <div class="sail-chips"></div>
+                            <div class="sail-scale">
+                                <div class="sail-bar">
+                                    <span class="sail-zone sz-blue" style="width:20%" title="under 5 kn">LIGHT AIR</span>
+                                    <span class="sail-zone sz-green" style="width:40%" title="5–15 kn">GREAT SAILING</span>
+                                    <span class="sail-zone sz-orange" style="width:20%" title="15–20 kn">SPORTY</span>
+                                    <span class="sail-zone sz-red" style="width:20%" title="20+ kn">RISKY</span>
+                                </div>
+                                <div class="sail-gustband" hidden>
+                                    <span class="band-label band-lull"></span>
+                                    <span class="band-label band-gust"></span>
+                                    <!-- Brackets and needle are inline SVG with fill/stroke
+                                         attributes: page darkeners (Brave Night Mode / Dark
+                                         Reader) rewrite CSS whites but leave these alone. -->
+                                    <svg class="band-bracket band-bracket-l" viewBox="0 0 10 36" aria-hidden="true"><path d="M10 1.5 H3.5 Q1.5 1.5 1.5 3.5 V32.5 Q1.5 34.5 3.5 34.5 H10" fill="none" stroke="white" stroke-width="3"/></svg>
+                                    <svg class="band-bracket band-bracket-r" viewBox="0 0 10 36" aria-hidden="true"><path d="M0 1.5 H6.5 Q8.5 1.5 8.5 3.5 V32.5 Q8.5 34.5 6.5 34.5 H0" fill="none" stroke="white" stroke-width="3"/></svg>
+                                </div>
+                                <div class="sail-marker">
+                                    <span class="sail-pill"></span>
+                                    <!-- Stroked, not filled: darkeners treat tall filled shapes as backgrounds. -->
+                                    <svg class="sail-arrow" viewBox="0 0 6 52" aria-hidden="true"><path d="M3 2.5 V49.5" fill="none" stroke="rgba(44,62,80,0.55)" stroke-width="5" stroke-linecap="round"/><path d="M3 2.5 V49.5" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"/></svg>
+                                </div>
+                                <span class="sail-tick" style="left:0%">0</span>
+                                <span class="sail-tick" style="left:20%">5 kn</span>
+                                <span class="sail-tick" style="left:60%">15 kn</span>
+                                <span class="sail-tick" style="left:80%">20 kn</span>
+                                <span class="sail-tick" style="left:100%">25+</span>
+                            </div>
+                        </div>
                         <!-- Each Grafana panel gets a white strip with our own title over
                              its header (which is truncated on narrow tiles and carries a
                              "Powered by Grafana" badge). Replaced by the custom charts. -->
@@ -104,6 +102,7 @@
                         </div>
                         <div class="weather-embed weather-embed-cam">
                             <img id="camImg" src="https://ayc.ageddon.com/api/bottom/latest.jpg" alt="Live Lake Travis webcam at Austin Yacht Club">
+                            <div id="camVerdict" class="cam-verdict" role="status" hidden></div>
                             <span class="cam-note">Looking East · 090°</span>
                             <div id="camCompass" class="cam-compass" hidden></div>
                             <div id="camSpeed" class="cam-compass cam-speed" hidden></div>
@@ -132,6 +131,11 @@
                             <div class="dir-chart-title iframe-title">Humidity</div>
                             <iframe data-src="https://grafana.ageddon.com/d-solo/adw52sz/ayc?orgId=1&amp;from=now-3h&amp;to=now&amp;refresh=5m&amp;panelId=panel-3&amp;theme=light&amp;__feature.dashboardScene=true" title="Live humidity at Austin Yacht Club" loading="lazy" frameborder="0"></iframe>
                         </div>
+                    </div>
+                    <!-- Shown only once the reading is over six minutes old -->
+                    <div class="sail-top" hidden>
+                        <span class="sail-updated"></span>
+                        <button type="button" class="sail-refresh" id="sailRefresh">refresh</button>
                     </div>
                     <div class="weather-links">
                         <a href="https://austinyachtclub.net/weather/" target="_blank" rel="noopener noreferrer" class="btn btn-primary">
@@ -376,6 +380,7 @@
         </main>
 
         <footer>
+            <p>Official AYC website: <a href="https://austinyachtclub.net/" target="_blank" rel="noopener noreferrer">austinyachtclub.net</a></p>
             <p>Club specific information? <a href="tel:+15122661336">+1 512 266 1336</a> (AYC General Manager)</p>
             <p>Website issue? <a href="mailto:robert@douglasmining.com">robert@douglasmining.com</a></p>
             <p><button type="button" class="sources-link" id="sourcesOpen">Something doesn't look right?</button></p>
@@ -466,6 +471,18 @@
 
         function chip(html) { return '<span class="sail-chip">' + html + '</span>'; }
 
+        // The answer to the headline question, painted across the top of the
+        // webcam so it is the first thing a phone shows.
+        function renderVerdict(w) {
+            var el = document.getElementById("camVerdict");
+            var parts = [];
+            if (w.wind_kn != null) parts.push(w.wind_kn + " kn" + (w.dir_card ? " " + w.dir_card : "") + (w.shifty ? ", shifty" : ""));
+            if (w.gust_kn != null && w.gust_kn > (w.wind_kn || 0)) parts.push("gusts " + w.gust_kn);
+            el.innerHTML = "<b>" + w.verdict + "</b>" + (parts.length ? "<span>" + parts.join(" · ") + "</span>" : "");
+            el.className = "cam-verdict cv-" + (w.color || "green");
+            el.hidden = false;
+        }
+
         function renderBanner(w) {
             var el = document.getElementById("sailability");
             var MAX = 25; // top of the scale in knots; 20+ zone absorbs anything above
@@ -475,8 +492,7 @@
             var marker = el.querySelector(".sail-marker");
             marker.style.left = p + "%";
             var pill = el.querySelector(".sail-pill");
-            pill.innerHTML = "now · " + w.wind_kn + " kn" +
-                '<span class="sail-pill-verdict"> · ' + w.verdict + "</span>";
+            pill.textContent = "now · " + w.wind_kn + " kn";
 
             var lo = pct(Math.min(w.lull_kn != null ? w.lull_kn : w.wind_kn, w.wind_kn));
             var hi = pct(Math.max(w.gust_kn != null ? w.gust_kn : w.wind_kn, w.wind_kn));
@@ -778,12 +794,13 @@
             return (h < 10 ? Math.round(h * 10) / 10 : Math.round(h)) + " h ago";
         }
 
-        // Live "updated N min ago" stamp; past 3 minutes a refresh button appears.
+        // "updated N min ago" with a refresh button, shown only once the
+        // reading is more than six minutes old; a fresh page says nothing.
+        var STAMP_AFTER_SECS = 6 * 60;
         function updateStamp(w) {
             var age = ageOf(w);
-            document.querySelector(".sail-updated").textContent =
-                age < 60 ? "updated just now" : "updated " + ageText(age);
-            document.getElementById("sailRefresh").hidden = age < 180;
+            document.querySelector(".sail-top").hidden = age < STAMP_AFTER_SECS;
+            document.querySelector(".sail-updated").textContent = "updated " + ageText(age);
         }
 
         var notice = document.getElementById("weatherNotice");
@@ -933,6 +950,7 @@
 
         function renderAll(w) {
             renderBanner(w);
+            renderVerdict(w);
             renderCompass(w);
             renderSpeed(w);
             renderDirChart(w);
