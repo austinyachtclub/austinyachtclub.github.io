@@ -699,7 +699,7 @@
             if (!el || !pts || pts.length < 2) return;
             var W = el.clientWidth, H = el.clientHeight;
             if (W < 60 || H < 60) return;
-            var L = 34, R = 12, T = 58, B = 10;
+            var L = 34, R = 16, T = 58, B = 24; // B leaves a strip for the legend
             var t0 = pts[0][0], t1 = pts[pts.length - 1][0];
             var vmax = 4;
             pts.forEach(function (p) { vmax = Math.max(vmax, p[3]); });
@@ -710,10 +710,20 @@
 
             var grid = "";
             for (var v = 0; v <= vmax; v += step) {
+                var tick = v + step > vmax ? v + " kn" : String(v); // unit on the last tick only
                 grid += '<line x1="' + x(v).toFixed(1) + '" y1="' + T + '" x2="' + x(v).toFixed(1) + '" y2="' + (H - B) + '" stroke="#e6edf8" stroke-width="1"/>' +
-                        '<text x="' + x(v).toFixed(1) + '" y="' + (T - 8) + '" text-anchor="middle" font-size="10" font-weight="600" fill="#888">' + v + "</text>";
+                        '<text x="' + x(v).toFixed(1) + '" y="' + (T - 8) + '" text-anchor="middle" font-size="10" font-weight="600" fill="#888">' + tick + "</text>";
             }
             grid += timeRows(t0, t1, y, L, W, R);
+
+            // Legend in the strip under the chart: a line swatch for the
+            // average and a block swatch for the lull-to-gust band.
+            var ly = H - 8, lx = W - R;
+            var legend =
+                '<text x="' + lx + '" y="' + ly + '" text-anchor="end" font-size="9.5" fill="#888">lull–gust</text>' +
+                '<rect x="' + (lx - 58) + '" y="' + (ly - 8) + '" width="12" height="9" rx="1.5" fill="rgba(66,133,244,0.15)" stroke="rgba(66,133,244,0.35)" stroke-width="1"/>' +
+                '<text x="' + (lx - 66) + '" y="' + ly + '" text-anchor="end" font-size="9.5" fill="#888">avg</text>' +
+                '<line x1="' + (lx - 100) + '" y1="' + (ly - 3.5) + '" x2="' + (lx - 86) + '" y2="' + (ly - 3.5) + '" stroke="#4285F4" stroke-width="2" stroke-linecap="round"/>';
 
             var band = '<polygon fill="rgba(66,133,244,0.15)" points="' +
                 pts.map(function (p) { return x(p[3]).toFixed(1) + "," + y(p[0]).toFixed(1); }).join(" ") + " " +
@@ -730,9 +740,9 @@
 
             el.innerHTML =
                 '<div class="dir-chart">' +
-                '<div class="dir-chart-title">Wind Speed <span>kn · band = lull–gust</span></div>' +
+                '<div class="dir-chart-title">Wind Speed</div>' +
                 '<svg width="' + W + '" height="' + (H - 34) + '" viewBox="0 34 ' + W + " " + (H - 34) + '">' +
-                grid + band + avgLine + dot + big + "</svg></div>";
+                grid + band + avgLine + dot + big + legend + "</svg></div>";
         }
 
         // Horizontal stat chart (air temp, humidity): current value in the title,
